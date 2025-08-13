@@ -1,35 +1,40 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
-import { type NextRequest, NextResponse } from "next/server"
-import { stripe, getCreditPackageById, getSubscriptionPlanById } from "@/lib/stripe"
-import type Stripe from "stripe"
+import { config } from "@/lib/config";
+import {
+  getCreditPackageById,
+  getSubscriptionPlanById,
+  stripe,
+} from "@/lib/stripe";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import type Stripe from "stripe";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+const webhookSecret = config.stripeWebhookSecret!;
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.text()
-    const signature = request.headers.get("stripe-signature")!
+    const body = await request.text();
+    const signature = request.headers.get("stripe-signature")!;
 
-    let event: Stripe.Event
+    let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
-      console.error("Webhook signature verification failed:", err)
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
+      console.error("Webhook signature verification failed:", err);
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = createRouteHandlerClient({ cookies });
 
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session
-        const { userId, type, packageId, planId } = session.metadata!
+        const session = event.data.object as Stripe.Checkout.Session;
+        const { userId, type, packageId, planId } = session.metadata!;
 
         if (type === "credits" && packageId) {
           // Handle credit purchase
-          const creditPackage = getCreditPackageById(packageId)
+          const creditPackage = getCreditPackageById(packageId);
           if (creditPackage) {
             // Add credits to user account
             const { error } = await supabase.rpc("update_user_credits", {
@@ -37,15 +42,15 @@ export async function POST(request: NextRequest) {
               credit_amount: creditPackage.credits,
               transaction_type: "purchase",
               description_text: `Purchased ${creditPackage.credits} credits`,
-            })
+            });
 
             if (error) {
-              console.error("Failed to add credits:", error)
+              console.error("Failed to add credits:", error);
             }
           }
         } else if (type === "subscription" && planId) {
           // Handle subscription creation
-          const plan = getSubscriptionPlanById(planId)
+          const plan = getSubscriptionPlanById(planId);
           if (plan) {
             // Update user subscription
             const { error } = await supabase
@@ -55,10 +60,10 @@ export async function POST(request: NextRequest) {
                 subscription_id: session.subscription as string,
                 credits: plan.credits, // Reset credits for new subscription
               })
-              .eq("id", userId)
+              .eq("id", userId);
 
             if (error) {
-              console.error("Failed to update subscription:", error)
+              console.error("Failed to update subscription:", error);
             }
 
             // Record transaction
@@ -67,25 +72,25 @@ export async function POST(request: NextRequest) {
               amount: plan.credits,
               type: "purchase",
               description: `${plan.name} subscription - ${plan.credits} credits`,
-            })
+            });
           }
         }
-        break
+        break;
       }
 
       case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = invoice.subscription as string
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = invoice.subscription as string;
 
         // Find user by subscription ID
         const { data: profile } = await supabase
           .from("profiles")
           .select("*")
           .eq("subscription_id", subscriptionId)
-          .single()
+          .single();
 
         if (profile) {
-          const plan = getSubscriptionPlanById(profile.subscription_status)
+          const plan = getSubscriptionPlanById(profile.subscription_status);
           if (plan) {
             // Reset monthly credits
             const { error } = await supabase.rpc("update_user_credits", {
@@ -93,18 +98,18 @@ export async function POST(request: NextRequest) {
               credit_amount: plan.credits,
               transaction_type: "purchase",
               description_text: `Monthly ${plan.name} subscription credits`,
-            })
+            });
 
             if (error) {
-              console.error("Failed to reset monthly credits:", error)
+              console.error("Failed to reset monthly credits:", error);
             }
           }
         }
-        break
+        break;
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription
+        const subscription = event.data.object as Stripe.Subscription;
 
         // Find user by subscription ID and downgrade to free
         const { error } = await supabase
@@ -113,21 +118,24 @@ export async function POST(request: NextRequest) {
             subscription_status: "free",
             subscription_id: null,
           })
-          .eq("subscription_id", subscription.id)
+          .eq("subscription_id", subscription.id);
 
         if (error) {
-          console.error("Failed to downgrade subscription:", error)
+          console.error("Failed to downgrade subscription:", error);
         }
-        break
+        break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`)
+        console.log(`Unhandled event type: ${event.type}`);
     }
 
-    return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook error:", error)
-    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 })
+    console.error("Webhook error:", error);
+    return NextResponse.json(
+      { error: "Webhook handler failed" },
+      { status: 500 }
+    );
   }
 }

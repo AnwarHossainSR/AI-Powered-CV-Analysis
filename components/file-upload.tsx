@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase/client";
 import {
   AlertCircle,
   CheckCircle,
@@ -128,96 +127,51 @@ export default function FileUpload({
           )
         );
 
-        // Upload file to Supabase Storage
-        const fileExt = file.name.includes(".")
-          ? file.name.split(".").pop()
-          : "pdf";
-        const fileName = `${userId}/${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(7)}.${fileExt}`;
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("resumes")
-          .upload(fileName, file);
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          toast.error(`Failed to upload ${file.name}`);
-          setUploadedFiles((prev) =>
-            prev.map((f, idx) =>
-              idx === i ? { ...f, status: "failed", progress: 0 } : f
-            )
-          );
-          continue;
-        }
-
-        // Get public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("resumes").getPublicUrl(fileName);
-
-        // Update progress
-        setUploadedFiles((prev) =>
-          prev.map((f, idx) => (idx === i ? { ...f, progress: 50 } : f))
-        );
-
-        // Save resume record to database
-        const { data: resumeData, error: dbError } = await supabase
-          .from("resumes")
-          .insert({
-            user_id: userId,
-            filename: file.name,
-            file_url: publicUrl,
-            file_size: file.size,
-            file_type: file.type,
-            status: "pending",
-          })
-          .select()
-          .single();
-
-        if (dbError) {
-          console.error("Database error:", dbError);
-          toast.error(`Failed to save ${file.name} to database`);
-          setUploadedFiles((prev) =>
-            prev.map((f, idx) =>
-              idx === i ? { ...f, status: "failed", progress: 0 } : f
-            )
-          );
-          continue;
-        }
-
-        // Update progress and status
-        setUploadedFiles((prev) =>
-          prev.map((f, idx) =>
-            idx === i
-              ? { ...f, id: resumeData.id, status: "processing", progress: 75 }
-              : f
-          )
-        );
-
-        // Trigger AI processing
         try {
-          const response = await fetch("/api/resumes/process", {
+          // Create FormData for file upload
+          const formData = new FormData();
+          formData.append("file", file);
+
+          // Send file directly to API route
+          const response = await fetch("/api/resumes/upload", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ resumeId: resumeData.id }),
+            body: formData,
           });
 
-          if (response.ok) {
-            setUploadedFiles((prev) =>
-              prev.map((f, idx) =>
-                idx === i ? { ...f, status: "completed", progress: 100 } : f
-              )
-            );
-            toast.success(`${file.name} analyzed successfully!`);
-          } else {
-            throw new Error("Processing failed");
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Upload failed");
           }
-        } catch (processingError) {
+
+          // Update progress through different stages
+          setUploadedFiles((prev) =>
+            prev.map((f, idx) =>
+              idx === i ? { ...f, status: "processing", progress: 75 } : f
+            )
+          );
+
+          // File processed successfully
+          setUploadedFiles((prev) =>
+            prev.map((f, idx) =>
+              idx === i
+                ? {
+                    ...f,
+                    id: result.resumeId,
+                    status: "completed",
+                    progress: 100,
+                  }
+                : f
+            )
+          );
+
+          toast.success(`${file.name} analyzed successfully!`);
+        } catch (processingError: any) {
           console.error("Processing error:", processingError);
-          toast.error(`Failed to analyze ${file.name}`);
+          toast.error(
+            `Failed to analyze ${file.name}: ${processingError.message}`
+          );
+
           setUploadedFiles((prev) =>
             prev.map((f, idx) =>
               idx === i ? { ...f, status: "failed", progress: 0 } : f
