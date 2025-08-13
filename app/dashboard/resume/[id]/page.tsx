@@ -1,37 +1,52 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { notFound } from "next/navigation"
-import DashboardNav from "@/components/dashboard-nav"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { FileText, Download, User, Briefcase, GraduationCap, Code, Globe, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import type { ParsedData } from "@/lib/types"
+import DashboardNav from "@/components/dashboard-nav";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
+import type { ParsedData } from "@/lib/types";
+import {
+  ArrowLeft,
+  Briefcase,
+  Code,
+  Download,
+  FileText,
+  Globe,
+  GraduationCap,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
 interface ResumeDetailsPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-export default async function ResumeDetailsPage({ params }: ResumeDetailsPageProps) {
-  const supabase = createClient()
+export default async function ResumeDetailsPage(
+  props: Promise<ResumeDetailsPageProps>
+) {
+  const { params } = await props;
+  const supabase = await createClient();
 
   // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Get resume and parsed data
@@ -40,13 +55,17 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
     .select("*")
     .eq("id", params.id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   if (resumeError || !resume) {
-    notFound()
+    notFound();
   }
 
-  const { data: parsedData } = await supabase.from("parsed_data").select("*").eq("resume_id", params.id).single()
+  const { data: parsedData } = await supabase
+    .from("parsed_data")
+    .select("*")
+    .eq("resume_id", params.id)
+    .single();
 
   if (!parsedData) {
     return (
@@ -57,8 +76,12 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
             <div className="px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Resume not analyzed yet</h3>
-                <p className="mt-1 text-sm text-gray-500">This resume is still being processed or analysis failed.</p>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  Resume not analyzed yet
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  This resume is still being processed or analysis failed.
+                </p>
                 <div className="mt-6">
                   <Link href="/dashboard">
                     <Button>Back to Dashboard</Button>
@@ -69,10 +92,10 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
           </main>
         </div>
       </div>
-    )
+    );
   }
 
-  const data = parsedData as ParsedData
+  const data = parsedData as ParsedData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -91,16 +114,25 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{resume.filename}</h1>
-                  <p className="text-sm text-gray-600">Analyzed on {new Date(data.created_at).toLocaleDateString()}</p>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {resume.filename}
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    Analyzed on {new Date(data.created_at).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-4">
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
                   Analysis Complete
                 </Badge>
-                <Badge variant="outline">Confidence: {Math.round((data.confidence_score || 0) * 100)}%</Badge>
+                <Badge variant="outline">
+                  Confidence: {Math.round((data.confidence_score || 0) * 100)}%
+                </Badge>
                 <Button variant="outline" size="sm">
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
@@ -120,33 +152,55 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                 <CardContent className="space-y-3">
                   {data.personal_info?.name && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Name</dt>
-                      <dd className="text-sm text-gray-900">{data.personal_info.name}</dd>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Name
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {data.personal_info.name}
+                      </dd>
                     </div>
                   )}
                   {data.personal_info?.email && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Email</dt>
-                      <dd className="text-sm text-gray-900">{data.personal_info.email}</dd>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Email
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {data.personal_info.email}
+                      </dd>
                     </div>
                   )}
                   {data.personal_info?.phone && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                      <dd className="text-sm text-gray-900">{data.personal_info.phone}</dd>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Phone
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {data.personal_info.phone}
+                      </dd>
                     </div>
                   )}
                   {data.personal_info?.location && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Location</dt>
-                      <dd className="text-sm text-gray-900">{data.personal_info.location}</dd>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Location
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {data.personal_info.location}
+                      </dd>
                     </div>
                   )}
                   {data.personal_info?.linkedin && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">LinkedIn</dt>
+                      <dt className="text-sm font-medium text-gray-500">
+                        LinkedIn
+                      </dt>
                       <dd className="text-sm text-blue-600 hover:underline">
-                        <a href={data.personal_info.linkedin} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={data.personal_info.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           {data.personal_info.linkedin}
                         </a>
                       </dd>
@@ -161,7 +215,9 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                   <CardTitle>Professional Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{data.summary || "No summary available."}</p>
+                  <p className="text-gray-700 leading-relaxed">
+                    {data.summary || "No summary available."}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -177,16 +233,31 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                   {data.experience && data.experience.length > 0 ? (
                     <div className="space-y-6">
                       {data.experience.map((exp, index) => (
-                        <div key={index} className="border-l-2 border-blue-200 pl-4">
+                        <div
+                          key={index}
+                          className="border-l-2 border-blue-200 pl-4"
+                        >
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="text-lg font-semibold text-gray-900">{exp.position}</h4>
-                              <p className="text-blue-600 font-medium">{exp.company}</p>
-                              <p className="text-sm text-gray-500">{exp.duration}</p>
-                              {exp.location && <p className="text-sm text-gray-500">{exp.location}</p>}
+                              <h4 className="text-lg font-semibold text-gray-900">
+                                {exp.position}
+                              </h4>
+                              <p className="text-blue-600 font-medium">
+                                {exp.company}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {exp.duration}
+                              </p>
+                              {exp.location && (
+                                <p className="text-sm text-gray-500">
+                                  {exp.location}
+                                </p>
+                              )}
                             </div>
                           </div>
-                          <p className="mt-2 text-gray-700">{exp.description}</p>
+                          <p className="mt-2 text-gray-700">
+                            {exp.description}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -209,16 +280,28 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                     <div className="space-y-4">
                       {data.education.map((edu, index) => (
                         <div key={index}>
-                          <h4 className="font-semibold text-gray-900">{edu.degree}</h4>
+                          <h4 className="font-semibold text-gray-900">
+                            {edu.degree}
+                          </h4>
                           <p className="text-blue-600">{edu.institution}</p>
                           <p className="text-sm text-gray-600">{edu.field}</p>
-                          {edu.graduation_date && <p className="text-sm text-gray-500">{edu.graduation_date}</p>}
-                          {edu.gpa && <p className="text-sm text-gray-500">GPA: {edu.gpa}</p>}
+                          {edu.graduation_date && (
+                            <p className="text-sm text-gray-500">
+                              {edu.graduation_date}
+                            </p>
+                          )}
+                          {edu.gpa && (
+                            <p className="text-sm text-gray-500">
+                              GPA: {edu.gpa}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">No education information found.</p>
+                    <p className="text-gray-500">
+                      No education information found.
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -232,21 +315,26 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {data.skills?.technical && data.skills.technical.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Technical Skills</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {data.skills.technical.map((skill, index) => (
-                          <Badge key={index} variant="secondary">
-                            {skill}
-                          </Badge>
-                        ))}
+                  {data.skills?.technical &&
+                    data.skills.technical.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Technical Skills
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {data.skills.technical.map((skill, index) => (
+                            <Badge key={index} variant="secondary">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                   {data.skills?.soft && data.skills.soft.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Soft Skills</h4>
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        Soft Skills
+                      </h4>
                       <div className="flex flex-wrap gap-2">
                         {data.skills.soft.map((skill, index) => (
                           <Badge key={index} variant="outline">
@@ -272,17 +360,26 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
                     <div className="space-y-4">
                       {data.projects.map((project, index) => (
                         <div key={index}>
-                          <h4 className="font-semibold text-gray-900">{project.name}</h4>
-                          <p className="text-sm text-gray-700 mt-1">{project.description}</p>
-                          {project.technologies && project.technologies.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {project.technologies.map((tech, techIndex) => (
-                                <Badge key={techIndex} variant="outline" className="text-xs">
-                                  {tech}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
+                          <h4 className="font-semibold text-gray-900">
+                            {project.name}
+                          </h4>
+                          <p className="text-sm text-gray-700 mt-1">
+                            {project.description}
+                          </p>
+                          {project.technologies &&
+                            project.technologies.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {project.technologies.map((tech, techIndex) => (
+                                  <Badge
+                                    key={techIndex}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {tech}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
                           {project.url && (
                             <a
                               href={project.url}
@@ -304,5 +401,5 @@ export default async function ResumeDetailsPage({ params }: ResumeDetailsPagePro
         </main>
       </div>
     </div>
-  )
+  );
 }

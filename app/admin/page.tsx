@@ -1,44 +1,59 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { checkAdminAccess, getAdminStats } from "@/lib/admin"
-import AdminNav from "@/components/admin-nav"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Users, FileText, CreditCard, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import AdminNav from "@/components/admin-nav";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { checkAdminAccess, getAdminStats } from "@/lib/admin";
+import { createClient } from "@/lib/supabase/server";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  FileText,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function AdminDashboard() {
-  const supabase = createClient()
+  const supabase = await createClient();
 
   // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Check admin access
-  const isAdmin = await checkAdminAccess(user.id)
+  const isAdmin = await checkAdminAccess(user.id);
   if (!isAdmin) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
   // Get admin stats
-  const { stats, totalRevenue, recentUsers, recentResumes } = await getAdminStats()
+  const { stats, totalRevenue, recentUsers, recentResumes } =
+    await getAdminStats();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "processing":
-        return <Clock className="h-4 w-4 text-yellow-500" />
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case "failed":
-        return <AlertCircle className="h-4 w-4 text-red-500" />
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-500" />
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,8 +62,12 @@ export default async function AdminDashboard() {
       <main className="py-10">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-600">Monitor system performance and manage users.</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Admin Dashboard
+            </h1>
+            <p className="mt-1 text-sm text-gray-600">
+              Monitor system performance and manage users.
+            </p>
           </div>
 
           {/* Stats Cards */}
@@ -61,8 +80,12 @@ export default async function AdminDashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-                      <dd className="text-lg font-medium text-gray-900">{stats.total_users}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Total Users
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {stats.total_users}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -77,8 +100,12 @@ export default async function AdminDashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Active Users</dt>
-                      <dd className="text-lg font-medium text-gray-900">{stats.active_users}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Active Users
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {stats.active_users}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -93,8 +120,12 @@ export default async function AdminDashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Total Resumes</dt>
-                      <dd className="text-lg font-medium text-gray-900">{stats.total_resumes}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Total Resumes
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {stats.total_resumes}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -109,8 +140,12 @@ export default async function AdminDashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Revenue</dt>
-                      <dd className="text-lg font-medium text-gray-900">${totalRevenue.toFixed(2)}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Revenue
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        ${totalRevenue.toFixed(2)}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -129,22 +164,31 @@ export default async function AdminDashboard() {
                 {recentUsers.length > 0 ? (
                   <div className="space-y-4">
                     {recentUsers.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between">
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between"
+                      >
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{user.full_name || user.email}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {user.full_name || user.email}
+                          </p>
                           <p className="text-xs text-gray-500">{user.email}</p>
                         </div>
                         <div className="text-right">
                           <Badge variant="secondary" className="capitalize">
                             {user.subscription_status}
                           </Badge>
-                          <p className="text-xs text-gray-500 mt-1">{new Date(user.created_at).toLocaleDateString()}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No users found</p>
+                  <p className="text-gray-500 text-center py-4">
+                    No users found
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -153,19 +197,28 @@ export default async function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Resume Analysis</CardTitle>
-                <CardDescription>Latest resume processing activity</CardDescription>
+                <CardDescription>
+                  Latest resume processing activity
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {recentResumes.length > 0 ? (
                   <div className="space-y-4">
                     {recentResumes.slice(0, 5).map((resume: any) => (
-                      <div key={resume.id} className="flex items-center justify-between">
+                      <div
+                        key={resume.id}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex items-center">
                           {getStatusIcon(resume.status)}
                           <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{resume.filename}</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {resume.filename}
+                            </p>
                             <p className="text-xs text-gray-500">
-                              {resume.profiles?.full_name || resume.profiles?.email || "Unknown User"}
+                              {resume.profiles?.full_name ||
+                                resume.profiles?.email ||
+                                "Unknown User"}
                             </p>
                           </div>
                         </div>
@@ -175,8 +228,8 @@ export default async function AdminDashboard() {
                               resume.status === "completed"
                                 ? "default"
                                 : resume.status === "failed"
-                                  ? "destructive"
-                                  : "secondary"
+                                ? "destructive"
+                                : "secondary"
                             }
                           >
                             {resume.status}
@@ -189,7 +242,9 @@ export default async function AdminDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No resumes found</p>
+                  <p className="text-gray-500 text-center py-4">
+                    No resumes found
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -197,5 +252,5 @@ export default async function AdminDashboard() {
         </div>
       </main>
     </div>
-  )
+  );
 }

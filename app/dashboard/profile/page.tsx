@@ -1,28 +1,38 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import DashboardNav from "@/components/dashboard-nav"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import DashboardNav from "@/components/dashboard-nav";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
-  const supabase = createClient()
+  const supabase = await createClient();
 
   // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   if (!profile) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   return (
@@ -33,21 +43,32 @@ export default async function ProfilePage() {
         <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-              <p className="mt-1 text-sm text-gray-600">Manage your account information and preferences.</p>
+              <h1 className="text-2xl font-bold text-gray-900 font-heading">
+                Profile Settings
+              </h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Manage your account information and preferences.
+              </p>
             </div>
 
-            <div className="max-w-3xl space-y-6">
+            <div className="space-y-6">
               {/* Account Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Information</CardTitle>
-                  <CardDescription>Your basic account details and subscription status</CardDescription>
+                  <CardTitle className="font-heading">
+                    Account Information
+                  </CardTitle>
+                  <CardDescription>
+                    Your basic account details and subscription status
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="fullName"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Full Name
                       </label>
                       <Input
@@ -59,7 +80,10 @@ export default async function ProfilePage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Email
                       </label>
                       <Input
@@ -75,10 +99,16 @@ export default async function ProfilePage() {
 
                   <div className="flex items-center justify-between pt-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Subscription Status</h4>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Subscription Status
+                      </h4>
                       <div className="mt-1">
                         <Badge
-                          variant={profile.subscription_status === "free" ? "secondary" : "default"}
+                          variant={
+                            profile.subscription_status === "free"
+                              ? "secondary"
+                              : "default"
+                          }
                           className="capitalize"
                         >
                           {profile.subscription_status}
@@ -93,21 +123,31 @@ export default async function ProfilePage() {
               {/* Credits & Usage */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Credits & Usage</CardTitle>
-                  <CardDescription>Monitor your credit balance and usage history</CardDescription>
+                  <CardTitle className="font-heading">
+                    Credits & Usage
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor your credit balance and usage history
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{profile.credits}</div>
-                      <div className="text-sm text-gray-600">Credits Remaining</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {profile.credits}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Credits Remaining
+                      </div>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">0</div>
                       <div className="text-sm text-gray-600">This Month</div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">0</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        0
+                      </div>
                       <div className="text-sm text-gray-600">Total Used</div>
                     </div>
                   </div>
@@ -117,30 +157,46 @@ export default async function ProfilePage() {
               {/* Account Actions */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Actions</CardTitle>
-                  <CardDescription>Manage your account settings and data</CardDescription>
+                  <CardTitle className="font-heading">
+                    Account Actions
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your account settings and data
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Change Password</h4>
-                      <p className="text-sm text-gray-600">Update your account password</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Change Password
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        Update your account password
+                      </p>
                     </div>
                     <Button variant="outline">Change Password</Button>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Export Data</h4>
-                      <p className="text-sm text-gray-600">Download all your resume analysis data</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Export Data
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        Download all your resume analysis data
+                      </p>
                     </div>
                     <Button variant="outline">Export Data</Button>
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                     <div>
-                      <h4 className="text-sm font-medium text-red-900">Delete Account</h4>
-                      <p className="text-sm text-red-600">Permanently delete your account and all data</p>
+                      <h4 className="text-sm font-medium text-red-900">
+                        Delete Account
+                      </h4>
+                      <p className="text-sm text-red-600">
+                        Permanently delete your account and all data
+                      </p>
                     </div>
                     <Button variant="destructive">Delete Account</Button>
                   </div>
@@ -151,5 +207,5 @@ export default async function ProfilePage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
