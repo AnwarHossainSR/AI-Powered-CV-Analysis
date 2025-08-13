@@ -1,23 +1,32 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { FileText, Upload, User, CreditCard, LogOut, Menu, X, History } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
-import { signOut } from "@/lib/actions"
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/actions";
+import {
+  CreditCard,
+  FileText,
+  History,
+  LogOut,
+  Menu,
+  Upload,
+  User,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 interface DashboardNavProps {
   user: {
-    email: string
-    full_name?: string
-  }
-  credits: number
+    email?: string;
+    full_name?: string;
+  };
+  credits: number;
 }
 
 export default function DashboardNav({ user, credits }: DashboardNavProps) {
-  const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: FileText },
@@ -25,7 +34,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
     { name: "Resume History", href: "/dashboard/resumes", icon: History },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
-  ]
+  ];
 
   return (
     <>
@@ -34,36 +43,46 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">
+              CV Analyzer
+            </span>
           </div>
 
           <div className="mt-8 flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      isActive ? "bg-blue-100 text-blue-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      isActive
+                        ? "bg-blue-100 text-blue-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
                     <item.icon
                       className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                        isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"
+                        isActive
+                          ? "text-blue-500"
+                          : "text-gray-400 group-hover:text-gray-500"
                       }`}
                     />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
 
             <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200">
               <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                <div className="text-sm font-medium text-blue-900">Credits Remaining</div>
-                <div className="text-2xl font-bold text-blue-600">{credits}</div>
+                <div className="text-sm font-medium text-blue-900">
+                  Credits Remaining
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {credits}
+                </div>
               </div>
 
               <div className="flex items-center">
@@ -73,7 +92,9 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                   </div>
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user.full_name || user.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.full_name || user.email}
+                  </p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
               </div>
@@ -99,7 +120,9 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">
+              CV Analyzer
+            </span>
           </div>
           <Button
             variant="ghost"
@@ -107,7 +130,11 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-gray-600"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </Button>
         </div>
 
@@ -115,29 +142,35 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
           <div className="bg-white border-b border-gray-200">
             <nav className="px-2 py-3 space-y-1">
               {navigation.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      isActive ? "bg-blue-100 text-blue-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      isActive
+                        ? "bg-blue-100 text-blue-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
                     <item.icon
                       className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                        isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"
+                        isActive
+                          ? "text-blue-500"
+                          : "text-gray-400 group-hover:text-gray-500"
                       }`}
                     />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
             <div className="px-4 py-3 border-t border-gray-200">
               <div className="bg-blue-50 rounded-lg p-3 mb-3">
-                <div className="text-sm font-medium text-blue-900">Credits: {credits}</div>
+                <div className="text-sm font-medium text-blue-900">
+                  Credits: {credits}
+                </div>
               </div>
               <form action={signOut}>
                 <Button
@@ -155,5 +188,5 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         )}
       </div>
     </>
-  )
+  );
 }

@@ -1,19 +1,22 @@
-import Stripe from "stripe"
+import Stripe from "stripe";
+import { config } from "./config";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not set")
+if (!config.stripeSecretKey) {
+  throw new Error(
+    "STRIPE_SECRET_KEY is not defined in the environment variables."
+  );
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-06-20",
-})
+export const stripe = new Stripe(config.stripeSecretKey, {
+  apiVersion: "2025-07-30.basil",
+});
 
 export const CREDIT_PACKAGES = [
   {
     id: "credits_50",
     credits: 50,
     price: 4.99,
-    priceId: "price_credits_50", // This would be your actual Stripe Price ID
+    priceId: "price_credits_50",
     popular: false,
   },
   {
@@ -37,7 +40,7 @@ export const CREDIT_PACKAGES = [
     priceId: "price_credits_500",
     popular: false,
   },
-]
+];
 
 export const SUBSCRIPTION_PLANS = [
   {
@@ -73,12 +76,12 @@ export const SUBSCRIPTION_PLANS = [
       "Team collaboration tools",
     ],
   },
-]
+];
 
 export function getCreditPackageById(id: string) {
-  return CREDIT_PACKAGES.find((pkg) => pkg.id === id)
+  return CREDIT_PACKAGES.find((pkg) => pkg.id === id);
 }
 
 export function getSubscriptionPlanById(id: string) {
-  return SUBSCRIPTION_PLANS.find((plan) => plan.id === id)
+  return SUBSCRIPTION_PLANS.find((plan) => plan.id === id);
 }
