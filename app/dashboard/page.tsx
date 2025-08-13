@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createClient, getUser } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { Resume } from "@/lib/types";
 import {
   AlertCircle,
@@ -26,22 +26,22 @@ export default async function DashboardPage() {
   // Get user
   const {
     data: { user },
-  } = await getUser();
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/auth/login");
   }
 
   // Get user profile
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .single(); // Use maybeSingle() instead of single()
 
-  if (!profile) {
-    redirect("/auth/login");
-  }
+  // if (!profile) {
+  //   redirect("/auth/login");
+  // }
 
   // Get user's resumes
   const { data: resumes } = await supabase
@@ -76,6 +76,9 @@ export default async function DashboardPage() {
         return "Pending";
     }
   };
+
+  console.log("profile", profile);
+  console.log("user", user);
 
   return (
     <div className="min-h-screen bg-gray-50">
