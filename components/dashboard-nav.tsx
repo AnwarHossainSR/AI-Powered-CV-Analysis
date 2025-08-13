@@ -1,40 +1,51 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { signOut } from "@/lib/actions"
-import { CreditCard, FileText, History, LogOut, Menu, Upload, User, X, Settings, Shield } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/actions";
+import {
+  CreditCard,
+  FileText,
+  History,
+  LogOut,
+  Menu,
+  Settings,
+  Shield,
+  Upload,
+  User,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface DashboardNavProps {
   user: {
-    email?: string
-    full_name?: string
-  }
-  credits: number
+    email?: string;
+    full_name?: string;
+  };
+  credits: number;
 }
 
 export default function DashboardNav({ user, credits }: DashboardNavProps) {
-  const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const response = await fetch("/api/admin/check")
+        const response = await fetch("/api/admin/check");
         if (response.ok) {
-          const data = await response.json()
-          setIsAdmin(data.isAdmin)
+          const data = await response.json();
+          setIsAdmin(data.isAdmin);
         }
       } catch (error) {
-        console.error("Error checking admin status:", error)
+        console.error("Error checking admin status:", error);
       }
-    }
+    };
 
-    checkAdminStatus()
-  }, [])
+    checkAdminStatus();
+  }, []);
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: FileText },
@@ -42,14 +53,16 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
     { name: "Resume History", href: "/dashboard/resumes", icon: History },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
-  ]
+  ];
 
   const adminNavigation = [
     { name: "Admin Panel", href: "/admin", icon: Shield },
     { name: "Admin Settings", href: "/admin/settings", icon: Settings },
-  ]
+  ];
 
-  const allNavigation = isAdmin ? [...navigation, ...adminNavigation] : navigation
+  const allNavigation = isAdmin
+    ? [...navigation, ...adminNavigation]
+    : navigation;
 
   return (
     <>
@@ -58,14 +71,16 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">
+              CV Analyzer
+            </span>
           </div>
 
           <div className="mt-8 flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
               {allNavigation.map((item) => {
-                const isActive = pathname === item.href
-                const isAdminItem = item.href.startsWith("/admin")
+                const isActive = pathname === item.href;
+                const isAdminItem = item.href.startsWith("/admin");
                 return (
                   <Link
                     key={item.name}
@@ -89,14 +104,18 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                     />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
 
             <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200">
               <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                <div className="text-sm font-medium text-blue-900">Credits Remaining</div>
-                <div className="text-2xl font-bold text-blue-600">{credits}</div>
+                <div className="text-sm font-medium text-blue-900">
+                  Credits Remaining
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {credits}
+                </div>
               </div>
 
               {isAdmin && (
@@ -115,7 +134,9 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                   </div>
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user.full_name || user.email}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.full_name || user.email}
+                  </p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
               </div>
@@ -141,7 +162,9 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">
+              CV Analyzer
+            </span>
           </div>
           <Button
             variant="ghost"
@@ -149,7 +172,11 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-gray-600"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </Button>
         </div>
 
@@ -157,8 +184,8 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
           <div className="bg-white border-b border-gray-200">
             <nav className="px-2 py-3 space-y-1">
               {allNavigation.map((item) => {
-                const isActive = pathname === item.href
-                const isAdminItem = item.href.startsWith("/admin")
+                const isActive = pathname === item.href;
+                const isAdminItem = item.href.startsWith("/admin");
                 return (
                   <Link
                     key={item.name}
@@ -183,12 +210,14 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                     />
                     {item.name}
                   </Link>
-                )
+                );
               })}
             </nav>
             <div className="px-4 py-3 border-t border-gray-200">
               <div className="bg-blue-50 rounded-lg p-3 mb-3">
-                <div className="text-sm font-medium text-blue-900">Credits: {credits}</div>
+                <div className="text-sm font-medium text-blue-900">
+                  Credits: {credits}
+                </div>
               </div>
               {isAdmin && (
                 <div className="bg-purple-50 rounded-lg p-3 mb-3">
@@ -214,5 +243,5 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         )}
       </div>
     </>
-  )
+  );
 }
