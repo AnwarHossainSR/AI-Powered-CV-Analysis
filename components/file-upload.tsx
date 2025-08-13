@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface FileUploadProps {
   userId: string
@@ -26,7 +27,13 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
   const router = useRouter()
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const filesWithStatus = acceptedFiles.map((file) => ({
+    const validFiles = acceptedFiles.filter((file) => file && file.name && file.size !== undefined)
+
+    if (validFiles.length !== acceptedFiles.length) {
+      toast.error("Some files were invalid and skipped")
+    }
+
+    const filesWithStatus = validFiles.map((file) => ({
       ...file,
       status: "uploading" as const,
       progress: 0,
@@ -52,7 +59,7 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
   const uploadFiles = async () => {
     if (uploadedFiles.length === 0) return
     if (credits < uploadedFiles.length) {
-      alert(`Insufficient credits. You need ${uploadedFiles.length} credits but only have ${credits}.`)
+      toast.error(`Insufficient credits. You need ${uploadedFiles.length} credits but only have ${credits}.`)
       return
     }
 
@@ -62,17 +69,24 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i]
 
+        if (!file || !file.name || file.size === undefined) {
+          toast.error(`Invalid file at position ${i + 1}`)
+          setUploadedFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: "failed", progress: 0 } : f)))
+          continue
+        }
+
         // Update file status to uploading
         setUploadedFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: "uploading", progress: 25 } : f)))
 
         // Upload file to Supabase Storage
-        const fileExt = file.name.split(".").pop()
+        const fileExt = file.name.includes(".") ? file.name.split(".").pop() : "pdf"
         const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
 
         const { data: uploadData, error: uploadError } = await supabase.storage.from("resumes").upload(fileName, file)
 
         if (uploadError) {
           console.error("Upload error:", uploadError)
+          toast.error(`Failed to upload ${file.name}`)
           setUploadedFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: "failed", progress: 0 } : f)))
           continue
         }
@@ -101,6 +115,7 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
 
         if (dbError) {
           console.error("Database error:", dbError)
+          toast.error(`Failed to save ${file.name} to database`)
           setUploadedFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: "failed", progress: 0 } : f)))
           continue
         }
@@ -124,11 +139,13 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
             setUploadedFiles((prev) =>
               prev.map((f, idx) => (idx === i ? { ...f, status: "completed", progress: 100 } : f)),
             )
+            toast.success(`${file.name} analyzed successfully!`)
           } else {
             throw new Error("Processing failed")
           }
         } catch (processingError) {
           console.error("Processing error:", processingError)
+          toast.error(`Failed to analyze ${file.name}`)
           setUploadedFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: "failed", progress: 0 } : f)))
         }
       }
@@ -141,7 +158,7 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
       }, 2000)
     } catch (error) {
       console.error("Upload failed:", error)
-      alert("Upload failed. Please try again.")
+      toast.error("Upload failed. Please try again.")
     } finally {
       setUploading(false)
     }
@@ -206,7 +223,7 @@ export default function FileUpload({ userId, credits, onUploadSuccess }: FileUpl
                     <div className="ml-3">
                       <p className="text-sm font-medium text-gray-900">{file.name}</p>
                       <p className="text-xs text-gray-500">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB • {getStatusText(file.status)}
+                        {file.size ? (file.size / 1024 / 1024).toFixed(2) : "0.00"} MB • {getStatusText(file.status)}
                       </p>
                       {file.progress !== undefined && file.progress > 0 && file.progress < 100 && (
                         <div className="mt-1 w-32 bg-gray-200 rounded-full h-1">
