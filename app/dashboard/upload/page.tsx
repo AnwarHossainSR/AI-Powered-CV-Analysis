@@ -37,8 +37,8 @@ export default async function UploadPage() {
                 <Zap className="w-4 h-4 mr-2" />
                 AI-Powered Analysis
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 font-heading mb-4">Elevate Your Career Journey</h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <h1 className="text-3xl font-bold text-gray-900 font-heading mb-4">Elevate Your Career Journey</h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Upload your CV for instant analysis and unlock insights that will transform your professional story.
               </p>
             </div>
@@ -48,8 +48,8 @@ export default async function UploadPage() {
               <div className="lg:col-span-2">
                 <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
                   <CardHeader className="pb-8">
-                    <CardTitle className="text-2xl font-heading text-gray-900">Select File</CardTitle>
-                    <CardDescription className="text-lg text-gray-600">
+                    <CardTitle className="text-xl font-heading text-gray-900">Select File</CardTitle>
+                    <CardDescription className="text-base text-gray-600">
                       Drag and drop your resume or click to browse
                     </CardDescription>
                   </CardHeader>
@@ -116,24 +116,30 @@ export default async function UploadPage() {
                 <div className="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Upload className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 font-heading mb-3">Instant Upload</h3>
-                <p className="text-gray-600">Drag, drop, and watch your resume transform into structured insights</p>
+                <h3 className="text-lg font-semibold text-gray-900 font-heading mb-3">Instant Upload</h3>
+                <p className="text-sm text-gray-600">
+                  Drag, drop, and watch your resume transform into structured insights
+                </p>
               </div>
 
               <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50">
                 <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Zap className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 font-heading mb-3">AI Analysis</h3>
-                <p className="text-gray-600">Advanced algorithms extract and analyze every detail of your experience</p>
+                <h3 className="text-lg font-semibold text-gray-900 font-heading mb-3">AI Analysis</h3>
+                <p className="text-sm text-gray-600">
+                  Advanced algorithms extract and analyze every detail of your experience
+                </p>
               </div>
 
               <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/50">
                 <div className="w-16 h-16 bg-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Shield className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 font-heading mb-3">Secure Processing</h3>
-                <p className="text-gray-600">Your data is encrypted and processed with enterprise-grade security</p>
+                <h3 className="text-lg font-semibold text-gray-900 font-heading mb-3">Secure Processing</h3>
+                <p className="text-sm text-gray-600">
+                  Your data is encrypted and processed with enterprise-grade security
+                </p>
               </div>
             </div>
           </div>

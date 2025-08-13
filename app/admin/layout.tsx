@@ -1,35 +1,19 @@
-import AdminNav from "@/components/admin-nav";
-import { checkAdminAccess } from "@/lib/admin";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import type React from "react";
+import AdminNav from "@/components/admin-nav"
+import type React from "react"
 
 export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const supabase = await createClient();
-
-  // Get user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  // Check admin access
-  const isAdmin = await checkAdminAccess(user.id);
-  if (!isAdmin) {
-    redirect("/dashboard");
-  }
-
+  // removed authentication checks as they're now handled in middleware
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminNav user={user} />
-      <main>{children}</main>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50/30 to-gray-100/20">
+      <AdminNav />
+      {/* updated main layout for proper sidebar spacing */}
+      <main className="lg:pl-64">
+        <div className="p-4 lg:p-8">{children}</div>
+      </main>
     </div>
-  );
+  )
 }

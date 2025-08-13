@@ -74,8 +74,8 @@ export default async function ResumesPage() {
                   <BarChart3 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 font-heading">Your Resume Evolution</h1>
-                  <p className="text-xl text-gray-600 mt-2">Track your progress and improvements over time</p>
+                  <h1 className="text-3xl font-bold text-gray-900 font-heading">Your Resume Evolution</h1>
+                  <p className="text-lg text-gray-600 mt-2">Track your progress and improvements over time</p>
                 </div>
               </div>
             </div>
@@ -138,11 +138,11 @@ export default async function ResumesPage() {
               <CardHeader className="pb-8">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-2xl font-heading text-gray-900 flex items-center">
+                    <CardTitle className="text-xl font-heading text-gray-900 flex items-center">
                       <Sparkles className="w-6 h-6 mr-3 text-purple-600" />
                       All Resumes
                     </CardTitle>
-                    <CardDescription className="text-lg text-gray-600 mt-2">
+                    <CardDescription className="text-base text-gray-600 mt-2">
                       Complete history of your uploaded resumes
                     </CardDescription>
                   </div>
@@ -171,7 +171,7 @@ export default async function ResumesPage() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center mb-3">
-                                <h4 className="text-xl font-semibold text-gray-900 font-heading">{resume.filename}</h4>
+                                <h4 className="text-lg font-semibold text-gray-900 font-heading">{resume.filename}</h4>
                                 <Badge className={`ml-4 px-3 py-1 border ${getStatusColor(resume.status)}`}>
                                   {resume.status}
                                 </Badge>
@@ -244,8 +244,8 @@ export default async function ResumesPage() {
                     <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-8">
                       <FileText className="h-12 w-12 text-gray-400" />
                     </div>
-                    <h3 className="text-2xl font-semibold text-gray-900 font-heading mb-4">No resumes yet</h3>
-                    <p className="text-lg text-gray-500 mb-8 max-w-md mx-auto">
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading mb-4">No resumes yet</h3>
+                    <p className="text-base text-gray-500 mb-8 max-w-md mx-auto">
                       Get started by uploading your first resume for AI analysis and unlock professional insights.
                     </p>
                     <Link href="/dashboard/upload">
