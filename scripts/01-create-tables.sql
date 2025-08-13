@@ -19,6 +19,9 @@ CREATE TABLE IF NOT EXISTS public.resumes (
     file_url TEXT NOT NULL,
     file_size INTEGER NOT NULL,
     file_type TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    error_message TEXT NOT NULL,
+    ai_summary TEXT NOT NULL,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -94,6 +97,27 @@ CREATE POLICY "Users can view own parsed data" ON public.parsed_data
         )
     );
 
+-- Users can insert parsed data for their own resumes
+CREATE POLICY "Users can insert own parsed data" ON public.parsed_data
+    FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.resumes
+            WHERE resumes.id = parsed_data.resume_id
+            AND resumes.user_id = auth.uid()
+        )
+    );
+
+-- Admins can insert parsed data for any resume
+CREATE POLICY "Admins can insert any parsed data" ON public.parsed_data
+    FOR INSERT
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.admin_users
+            WHERE admin_users.id = auth.uid()
+        )
+    );
+
 -- Create policies for credit_transactions
 CREATE POLICY "Users can view own transactions" ON public.credit_transactions
     FOR SELECT USING (auth.uid() = user_id);
@@ -124,6 +148,14 @@ CREATE POLICY "Admins can view all parsed data" ON public.parsed_data
     );
 
 CREATE POLICY "Admins can view all transactions" ON public.credit_transactions
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.admin_users 
+            WHERE admin_users.id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Admins can view all admin users" ON public.admin_users
     FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM public.admin_users 
