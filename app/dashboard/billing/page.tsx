@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { AlertCircle, CheckCircle, CreditCard, Crown, Zap, TrendingUp } from "lucide-react"
-import { redirect } from "next/navigation"
 
 interface BillingPageProps {
   searchParams: {
@@ -18,27 +17,19 @@ interface BillingPageProps {
 export default async function BillingPage({ searchParams }: BillingPageProps) {
   const supabase = await createClient()
 
-  // Get user
+  // Get user (middleware ensures user exists)
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/auth/login")
-  }
-
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  if (!profile) {
-    redirect("/auth/login")
-  }
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
 
   // Get recent transactions
   const { data: transactions } = await supabase
     .from("credit_transactions")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", user!.id)
     .order("created_at", { ascending: false })
     .limit(10)
 
@@ -47,7 +38,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      <DashboardNav user={user} credits={profile.credits} />
+      <DashboardNav user={user!} credits={profile?.credits || 0} />
 
       <div className="lg:pl-64">
         <main className="py-8">
@@ -106,20 +97,20 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                       <div>
                         <div className="flex items-center mb-2">
                           <Badge
-                            variant={profile.subscription_status === "free" ? "secondary" : "default"}
+                            variant={profile?.subscription_status === "free" ? "secondary" : "default"}
                             className={`text-sm px-3 py-1 mr-3 ${
-                              profile.subscription_status === "free"
+                              profile?.subscription_status === "free"
                                 ? "bg-gray-100 text-gray-800"
                                 : "bg-gradient-to-r from-purple-600 to-cyan-600 text-white"
                             }`}
                           >
-                            {profile.subscription_status === "free"
+                            {profile?.subscription_status === "free"
                               ? "Free Plan"
-                              : `${profile.subscription_status} Plan`}
+                              : `${profile?.subscription_status} Plan`}
                           </Badge>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-2xl font-bold text-purple-600">{profile.credits}</span>
+                          <span className="text-2xl font-bold text-purple-600">{profile?.credits || 0}</span>
                           <span className="text-base text-gray-600">credits remaining</span>
                         </div>
                       </div>
@@ -131,7 +122,10 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               {/* Subscription Plans */}
               <div>
                 <h2 className="text-xl font-bold text-gray-900 font-heading mb-6 text-center">Upgrade Your Plan</h2>
-                <SubscriptionPlans currentPlan={profile.subscription_status} subscriptionId={profile.subscription_id} />
+                <SubscriptionPlans
+                  currentPlan={profile?.subscription_status || "free"}
+                  subscriptionId={profile?.subscription_id}
+                />
               </div>
 
               {/* Credit Purchase */}
@@ -139,7 +133,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 <h2 className="text-xl font-bold text-gray-900 font-heading mb-6 text-center">
                   Purchase Additional Credits
                 </h2>
-                <CreditPurchase currentCredits={profile.credits} />
+                <CreditPurchase currentCredits={profile?.credits || 0} />
               </div>
 
               {/* Transaction History */}

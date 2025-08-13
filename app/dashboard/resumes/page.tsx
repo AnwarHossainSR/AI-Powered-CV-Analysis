@@ -6,32 +6,23 @@ import { createClient } from "@/lib/supabase/server"
 import type { Resume } from "@/lib/types"
 import { AlertCircle, Calendar, CheckCircle, Clock, Eye, FileDown, FileText, BarChart3, Sparkles } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 
 export default async function ResumesPage() {
   const supabase = await createClient()
 
-  // Get user
+  // Get user (middleware ensures user exists)
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/auth/login")
-  }
-
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  if (!profile) {
-    redirect("/auth/login")
-  }
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
 
   // Get all user's resumes
   const { data: resumes } = await supabase
     .from("resumes")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", user!.id)
     .order("created_at", { ascending: false })
 
   const getStatusIcon = (status: string) => {
@@ -62,7 +53,7 @@ export default async function ResumesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50/30">
-      <DashboardNav user={user} credits={profile.credits} />
+      <DashboardNav user={user!} credits={profile?.credits || 0} />
 
       <div className="lg:pl-64">
         <main className="py-12">

@@ -5,30 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/server"
 import { User, Settings, Shield, Download, Trash2, Key, BarChart3 } from "lucide-react"
-import { redirect } from "next/navigation"
 
 export default async function ProfilePage() {
   const supabase = await createClient()
 
-  // Get user
+  // Get user (middleware ensures user exists)
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/auth/login")
-  }
-
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  if (!profile) {
-    redirect("/auth/login")
-  }
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-      <DashboardNav user={user} credits={profile.credits} />
+      <DashboardNav user={user!} credits={profile?.credits || 0} />
 
       <div className="lg:pl-64">
         <main className="py-8">
@@ -69,7 +60,7 @@ export default async function ProfilePage() {
                         id="fullName"
                         name="fullName"
                         type="text"
-                        defaultValue={profile.full_name || ""}
+                        defaultValue={profile?.full_name || ""}
                         className="h-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
@@ -81,7 +72,7 @@ export default async function ProfilePage() {
                         id="email"
                         name="email"
                         type="email"
-                        defaultValue={user.email || ""}
+                        defaultValue={user!.email || ""}
                         disabled
                         className="h-10 bg-gray-50 border-gray-200"
                       />
@@ -94,16 +85,16 @@ export default async function ProfilePage() {
                         <h4 className="text-base font-medium text-gray-900">Subscription Status</h4>
                         <div className="mt-2">
                           <Badge
-                            variant={profile.subscription_status === "free" ? "secondary" : "default"}
+                            variant={profile?.subscription_status === "free" ? "secondary" : "default"}
                             className={`text-sm px-3 py-1 ${
-                              profile.subscription_status === "free"
+                              profile?.subscription_status === "free"
                                 ? "bg-gray-100 text-gray-800"
                                 : "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
                             }`}
                           >
-                            {profile.subscription_status === "free"
+                            {profile?.subscription_status === "free"
                               ? "Free Plan"
-                              : `${profile.subscription_status} Plan`}
+                              : `${profile?.subscription_status} Plan`}
                           </Badge>
                         </div>
                       </div>
@@ -130,7 +121,7 @@ export default async function ProfilePage() {
                 <CardContent className="relative">
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <div className="text-center p-6 bg-white/80 rounded-xl shadow-md">
-                      <div className="text-2xl font-bold text-cyan-600 mb-1">{profile.credits}</div>
+                      <div className="text-2xl font-bold text-cyan-600 mb-1">{profile?.credits || 0}</div>
                       <div className="text-sm font-medium text-gray-700">Credits Remaining</div>
                     </div>
                     <div className="text-center p-6 bg-white/80 rounded-xl shadow-md">

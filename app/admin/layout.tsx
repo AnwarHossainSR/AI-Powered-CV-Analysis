@@ -1,19 +1,30 @@
-import AdminNav from "@/components/admin-nav";
-import type React from "react";
+import DashboardNav from "@/components/dashboard-nav"
+import { createClient } from "@/lib/supabase/server"
+import type React from "react"
 
 export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  // removed authentication checks as they're now handled in middleware
+  const supabase = await createClient()
+
+  // Get user (middleware ensures user exists and has admin access)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Get user profile for credits display
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50/30 to-gray-100/20">
-      <AdminNav />
-      {/* updated main layout for proper sidebar spacing */}
-      <main className="lg:pl-64">
-        <div className="p-4 lg:p-8">{children}</div>
-      </main>
+    <div className="min-h-screen bg-gray-50">
+      <DashboardNav user={user!} credits={profile?.credits || 0} />
+      <div className="lg:pl-64">
+        <main className="py-10">
+          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        </main>
+      </div>
     </div>
-  );
+  )
 }
