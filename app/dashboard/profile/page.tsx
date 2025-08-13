@@ -33,15 +33,15 @@ export default async function ProfilePage() {
         <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-heading">Profile Settings</h1>
               <p className="mt-1 text-sm text-gray-600">Manage your account information and preferences.</p>
             </div>
 
-            <div className="max-w-3xl space-y-6">
+            <div className="space-y-6">
               {/* Account Information */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Information</CardTitle>
+                  <CardTitle className="font-heading">Account Information</CardTitle>
                   <CardDescription>Your basic account details and subscription status</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -93,7 +93,7 @@ export default async function ProfilePage() {
               {/* Credits & Usage */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Credits & Usage</CardTitle>
+                  <CardTitle className="font-heading">Credits & Usage</CardTitle>
                   <CardDescription>Monitor your credit balance and usage history</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -117,7 +117,7 @@ export default async function ProfilePage() {
               {/* Account Actions */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Actions</CardTitle>
+                  <CardTitle className="font-heading">Account Actions</CardTitle>
                   <CardDescription>Manage your account settings and data</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

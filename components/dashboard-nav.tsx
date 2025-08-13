@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { FileText, Upload, User, CreditCard, LogOut, Menu, X } from "lucide-react"
+import { FileText, Upload, User, CreditCard, LogOut, Menu, X, History } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -22,6 +22,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: FileText },
     { name: "Upload Resume", href: "/dashboard/upload", icon: Upload },
+    { name: "Resume History", href: "/dashboard/resumes", icon: History },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
   ]
@@ -33,7 +34,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900">CV Analyzer</span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
           </div>
 
           <div className="mt-8 flex-grow flex flex-col">
@@ -98,7 +99,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900">CV Analyzer</span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
           </div>
           <Button
             variant="ghost"

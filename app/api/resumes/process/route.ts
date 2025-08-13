@@ -1,11 +1,10 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
-import { parseResumeWithAI, extractTextFromFile } from "@/lib/ai"
+import { parseResumeWithAI } from "@/lib/ai"
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = createClient()
 
     // Get authenticated user
     const {
@@ -17,60 +16,82 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { resumeId } = await request.json()
+    // Get user profile to check credits
+    const { data: profile } = await supabase.from("profiles").select("credits").eq("id", user.id).single()
 
-    if (!resumeId) {
-      return NextResponse.json({ error: "Resume ID is required" }, { status: 400 })
+    if (!profile || profile.credits < 1) {
+      return NextResponse.json(
+        {
+          error: "Insufficient credits",
+          credits: profile?.credits || 0,
+          needsCredits: true,
+        },
+        { status: 402 },
+      )
     }
 
-    // Get resume record
-    const { data: resume, error: resumeError } = await supabase
-      .from("resumes")
-      .select("*")
-      .eq("id", resumeId)
-      .eq("user_id", user.id)
-      .single()
+    const formData = await request.formData()
+    const file = formData.get("file") as File
 
-    if (resumeError || !resume) {
-      return NextResponse.json({ error: "Resume not found" }, { status: 404 })
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    // Check if already processed
-    if (resume.status === "completed") {
-      return NextResponse.json({ error: "Resume already processed" }, { status: 400 })
+    // Validate file type
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/plain",
+    ]
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: "Only PDF, DOC, DOCX, and TXT files are supported" }, { status: 400 })
     }
 
-    // Update status to processing
-    await supabase.from("resumes").update({ status: "processing" }).eq("id", resumeId)
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "File too large. Maximum size is 10MB" }, { status: 400 })
+    }
 
     try {
-      // Download file from Supabase Storage
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from("resumes")
-        .download(resume.file_url.split("/").pop() || "")
+      // Upload file to Supabase Storage
+      const fileName = `${user.id}/${Date.now()}-${file.name}`
+      const { data: uploadData, error: uploadError } = await supabase.storage.from("resumes").upload(fileName, file)
 
-      if (downloadError || !fileData) {
-        throw new Error("Failed to download file")
+      if (uploadError) {
+        throw new Error("Failed to upload file")
       }
 
-      // Extract text from file
-      const resumeText = await extractTextFromFile(fileData as File)
+      // Create resume record
+      const { data: resume, error: resumeError } = await supabase
+        .from("resumes")
+        .insert({
+          user_id: user.id,
+          filename: file.name,
+          file_url: uploadData.path,
+          file_size: file.size,
+          status: "processing",
+        })
+        .select()
+        .single()
 
-      // Parse with AI
-      const { data: parsedData, confidence, summary } = await parseResumeWithAI(resumeText)
+      if (resumeError || !resume) {
+        throw new Error("Failed to create resume record")
+      }
+
+      // Process with AI directly
+      const { data: parsedData, confidence, summary } = await parseResumeWithAI(file)
 
       // Save parsed data to database
       const { error: insertError } = await supabase.from("parsed_data").insert({
-        resume_id: resumeId,
+        resume_id: resume.id,
         personal_info: parsedData.personal_info,
         experience: parsedData.experience,
         education: parsedData.education,
         skills: parsedData.skills,
         certifications: parsedData.certifications,
-        languages: parsedData.languages,
         projects: parsedData.projects,
         summary,
-        raw_text: resumeText,
         confidence_score: confidence / 100,
       })
 
@@ -78,33 +99,47 @@ export async function POST(request: NextRequest) {
         throw new Error("Failed to save parsed data")
       }
 
+      // Update resume with parsed data and status
+      await supabase
+        .from("resumes")
+        .update({
+          status: "completed",
+          parsed_data: parsedData,
+          confidence_score: confidence,
+          ai_summary: summary,
+        })
+        .eq("id", resume.id)
+
       // Deduct credit and record transaction
       const { error: creditError } = await supabase.rpc("update_user_credits", {
         user_uuid: user.id,
         credit_amount: -1,
         transaction_type: "usage",
-        description_text: `Resume analysis: ${resume.filename}`,
-        resume_uuid: resumeId,
+        description_text: `Resume analysis: ${file.name}`,
+        resume_uuid: resume.id,
       })
 
       if (creditError) {
         console.error("Credit deduction error:", creditError)
       }
 
-      // Update resume status to completed
-      await supabase.from("resumes").update({ status: "completed" }).eq("id", resumeId)
+      // Get updated credits
+      const { data: updatedProfile } = await supabase.from("profiles").select("credits").eq("id", user.id).single()
 
       return NextResponse.json({
         success: true,
+        resumeId: resume.id,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
         confidence,
         summary,
+        creditsUsed: 1,
+        remainingCredits: updatedProfile?.credits || 0,
+        message: "Resume processed successfully",
       })
     } catch (processingError) {
       console.error("Processing error:", processingError)
-
-      // Update status to failed
-      await supabase.from("resumes").update({ status: "failed" }).eq("id", resumeId)
-
       return NextResponse.json({ error: "Failed to process resume" }, { status: 500 })
     }
   } catch (error) {

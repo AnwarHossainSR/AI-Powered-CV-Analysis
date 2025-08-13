@@ -50,7 +50,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
         <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Billing & Credits</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-heading">Billing & Credits</h1>
               <p className="mt-1 text-sm text-gray-600">Manage your subscription and purchase additional credits.</p>
             </div>
 
@@ -73,11 +73,11 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               </Alert>
             )}
 
-            <div className="max-w-6xl space-y-8">
+            <div className="space-y-8">
               {/* Current Plan */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Current Plan</CardTitle>
+                  <CardTitle className="font-heading">Current Plan</CardTitle>
                   <CardDescription>Your current subscription and credit balance</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -111,7 +111,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
               {/* Transaction History */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Transaction History</CardTitle>
+                  <CardTitle className="font-heading">Transaction History</CardTitle>
                   <CardDescription>Your recent credit purchases and usage</CardDescription>
                 </CardHeader>
                 <CardContent>

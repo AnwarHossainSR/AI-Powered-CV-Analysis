@@ -1,6 +1,7 @@
-import { generateObject } from "ai"
-import { google } from "@ai-sdk/google"
 import { z } from "zod"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "")
 
 // Schema for structured resume data
 const resumeSchema = z.object({
@@ -43,12 +44,6 @@ const resumeSchema = z.object({
       expiry: z.string().optional(),
     }),
   ),
-  languages: z.array(
-    z.object({
-      language: z.string(),
-      proficiency: z.string(),
-    }),
-  ),
   projects: z.array(
     z.object({
       name: z.string(),
@@ -62,42 +57,103 @@ const resumeSchema = z.object({
 
 export type ResumeData = z.infer<typeof resumeSchema>
 
-export async function parseResumeWithAI(resumeText: string): Promise<{
+export async function parseResumeWithAI(file: File): Promise<{
   data: ResumeData
   confidence: number
   summary: string
 }> {
   try {
-    const { object } = await generateObject({
-      model: google("gemini-1.5-pro"),
-      schema: resumeSchema,
-      prompt: `
-        You are an expert resume parser. Analyze the following resume text and extract structured information.
-        
-        Instructions:
-        - Extract all personal information (name, email, phone, location, LinkedIn, website)
-        - Parse work experience with company, position, duration, and detailed descriptions
-        - Extract education details including institution, degree, field of study, graduation date, and GPA if mentioned
-        - Categorize skills into technical, soft skills, and languages
-        - Extract certifications with issuer and dates
-        - Identify projects with descriptions and technologies used
-        - Provide a professional summary if one exists or create a brief one based on the content
-        - Be thorough and accurate in your extraction
-        - If information is not clearly stated, leave those fields empty rather than guessing
-        
-        Resume text:
-        ${resumeText}
-      `,
-    })
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64File = buffer.toString("base64")
 
-    // Calculate confidence score based on completeness
-    const confidence = calculateConfidenceScore(object)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" })
+
+    const prompt = `
+      Extract structured information from the provided CV/Resume PDF file and return it as JSON.
+      Please extract and return ONLY a valid JSON object with these fields:
+      {
+        "personal_info": {
+          "name": "",
+          "email": "",
+          "phone": "",
+          "location": "",
+          "linkedin": "",
+          "website": ""
+        },
+        "experience": [
+          {
+            "company": "",
+            "position": "",
+            "duration": "",
+            "description": "",
+            "location": ""
+          }
+        ],
+        "education": [
+          {
+            "institution": "",
+            "degree": "",
+            "field": "",
+            "graduation_date": "",
+            "gpa": ""
+          }
+        ],
+        "skills": {
+          "technical": [],
+          "soft": [],
+          "languages": []
+        },
+        "certifications": [
+          {
+            "name": "",
+            "issuer": "",
+            "date": "",
+            "expiry": ""
+          }
+        ],
+        "projects": [
+          {
+            "name": "",
+            "description": "",
+            "technologies": [],
+            "url": ""
+          }
+        ],
+        "summary": ""
+      }
+      
+      Be thorough and accurate in your extraction. If information is not clearly stated, leave those fields empty.
+    `
+
+    const filePart = {
+      inlineData: {
+        data: base64File,
+        mimeType: file.type,
+      },
+    }
+
+    const result = await model.generateContent([prompt, filePart])
+    const response = await result.response
+    const text = response.text()
+
+    let parsedData: ResumeData
+    try {
+      const cleanedText = text.replace(/```json\n?|\n?```/g, "")
+      parsedData = JSON.parse(cleanedText)
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", parseError)
+      throw new Error("Failed to parse AI response")
+    }
+
+    // Calculate confidence score
+    const confidence = calculateConfidenceScore(parsedData)
 
     // Generate summary
-    const summary = await generateSummary(resumeText, object)
+    const summary = await generateSummary(parsedData)
 
     return {
-      data: object,
+      data: parsedData,
       confidence,
       summary,
     }
@@ -137,54 +193,61 @@ function calculateConfidenceScore(data: ResumeData): number {
   return Math.round((score / maxScore) * 100)
 }
 
-async function generateSummary(resumeText: string, parsedData: ResumeData): Promise<string> {
+async function generateSummary(parsedData: ResumeData): Promise<string> {
   try {
-    const { text } = await generateObject({
-      model: google("gemini-1.5-pro"),
-      schema: z.object({
-        summary: z.string(),
-      }),
-      prompt: `
-        Based on the following resume content and parsed data, generate a concise professional summary (2-3 sentences) that highlights:
-        - Key professional strengths and experience level
-        - Primary skills and expertise areas
-        - Career focus or industry specialization
-        
-        Resume text: ${resumeText.substring(0, 1000)}
-        
-        Parsed experience: ${JSON.stringify(parsedData.experience.slice(0, 2))}
-        Parsed skills: ${JSON.stringify(parsedData.skills)}
-      `,
-    })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" })
 
-    return text.summary || "Professional with diverse experience and skills."
+    const prompt = `
+      Based on the following parsed resume data, generate a concise professional summary (2-3 sentences) that highlights:
+      - Key professional strengths and experience level
+      - Primary skills and expertise areas
+      - Career focus or industry specialization
+      
+      Parsed data: ${JSON.stringify(parsedData)}
+      
+      Return only the summary text, no additional formatting or explanations.
+    `
+
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const summary = response.text().trim()
+
+    return summary || "Professional with diverse experience and skills."
   } catch (error) {
     console.error("Summary generation error:", error)
     return "Professional with diverse experience and skills."
   }
 }
 
+export async function generateCoverLetter(resumeData: ResumeData, jobDescription?: string): Promise<string> {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" })
+
+    const prompt = `
+      Generate a professional cover letter based on the following resume data:
+      ${JSON.stringify(resumeData)}
+      
+      ${jobDescription ? `Job Description: ${jobDescription}` : "Create a general cover letter that highlights the candidate's strengths."}
+      
+      The cover letter should:
+      - Be professional and engaging
+      - Highlight key achievements and skills
+      - Be 3-4 paragraphs long
+      - Include proper formatting
+      - Match the tone to the candidate's experience level
+      
+      Return only the cover letter content without any additional formatting or explanations.
+    `
+
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    return response.text().trim()
+  } catch (error) {
+    console.error("Cover letter generation error:", error)
+    throw new Error("Failed to generate cover letter")
+  }
+}
+
 export async function extractTextFromFile(file: File): Promise<string> {
-  const fileType = file.type
-
-  if (fileType === "text/plain") {
-    return await file.text()
-  }
-
-  if (fileType === "application/pdf") {
-    // For PDF parsing, we'll use a simple approach
-    // In production, you'd want to use a proper PDF parsing library
-    return await file.text()
-  }
-
-  if (
-    fileType === "application/msword" ||
-    fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  ) {
-    // For Word documents, we'll use a simple approach
-    // In production, you'd want to use a proper Word parsing library
-    return await file.text()
-  }
-
-  throw new Error(`Unsupported file type: ${fileType}`)
+  return "File will be processed directly by AI"
 }

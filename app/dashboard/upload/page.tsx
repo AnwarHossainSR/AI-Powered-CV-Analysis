@@ -31,16 +31,16 @@ export default async function UploadPage() {
         <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Upload Resume</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-heading">Upload Resume</h1>
               <p className="mt-1 text-sm text-gray-600">
                 Upload your resume files for AI-powered analysis and data extraction.
               </p>
             </div>
 
-            <div className="max-w-3xl">
+            <div className="space-y-6">
               <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle>Upload Guidelines</CardTitle>
+                  <CardTitle className="font-heading">Upload Guidelines</CardTitle>
                   <CardDescription>Follow these guidelines for the best analysis results</CardDescription>
                 </CardHeader>
                 <CardContent>

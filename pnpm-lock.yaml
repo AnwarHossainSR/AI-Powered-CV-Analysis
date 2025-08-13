@@ -9,8 +9,11 @@ importers:
   .:
     dependencies:
       '@ai-sdk/google':
+        specifier: 2.0.4
+        version: 2.0.4(zod@3.25.76)
+      '@google/generative-ai':
         specifier: latest
-        version: 2.0.4(zod@3.25.67)
+        version: 0.24.1
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.60.0(react@19.0.0))
@@ -75,8 +78,8 @@ importers:
         specifier: 1.2.2
         version: 1.2.2(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-slot':
-        specifier: 1.1.1
-        version: 1.1.1(@types/react@19.0.0)(react@19.0.0)
+        specifier: latest
+        version: 1.2.3(@types/react@19.0.0)(react@19.0.0)
       '@radix-ui/react-switch':
         specifier: 1.1.2
         version: 1.1.2(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -103,7 +106,7 @@ importers:
         version: 2.55.0
       ai:
         specifier: latest
-        version: 5.0.10(zod@3.25.67)
+        version: 5.0.11(zod@3.25.76)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.5.0)
@@ -135,7 +138,7 @@ importers:
         specifier: 15.2.4
         version: 15.2.4(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       next-themes:
-        specifier: ^0.4.6
+        specifier: latest
         version: 0.4.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react:
         specifier: ^19
@@ -171,11 +174,11 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.1.9)
       vaul:
-        specifier: ^0.9.9
-        version: 0.9.9(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       zod:
-        specifier: 3.25.67
-        version: 3.25.67
+        specifier: 3.25.76
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.1.9
@@ -204,8 +207,8 @@ importers:
 
 packages:
 
-  '@ai-sdk/gateway@1.0.4':
-    resolution: {integrity: sha512-1roLdgMbFU3Nr4MC97/te7w6OqxsWBkDUkpbCcvxF3jz/ku91WVaJldn/PKU8feMKNyI5W9wnqhbjb1BqbExOQ==}
+  '@ai-sdk/gateway@1.0.5':
+    resolution: {integrity: sha512-GOhxiHm2nfuS618Ia13AWxEIhCsj5+tFaw6sjSO7pvMZT03QgFAJyX4xBYj+3i3mfIvw+yJOvyhVu1fI+pAHQA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -218,6 +221,12 @@ packages:
 
   '@ai-sdk/provider-utils@3.0.1':
     resolution: {integrity: sha512-/iP1sKc6UdJgGH98OCly7sWJKv+J9G47PnTjIj40IJMUQKwDrUMyf7zOOfRtPwSuNifYhSoJQ4s1WltI65gJ/g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4
+
+  '@ai-sdk/provider-utils@3.0.2':
+    resolution: {integrity: sha512-0a5a6VafkV6+0irdpqnub8WE6qzG2VMsDBpXb9NQIz8c4TG8fI+GSTFIL9sqrLEwXrHdiRj7fwJsrir4jClL0w==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -258,6 +267,10 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@google/generative-ai@0.24.1':
+    resolution: {integrity: sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==}
+    engines: {node: '>=18.0.0'}
 
   '@hookform/resolvers@3.10.0':
     resolution: {integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==}
@@ -1270,8 +1283,8 @@ packages:
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
-  ai@5.0.10:
-    resolution: {integrity: sha512-oPvaifsnHZzT3I07qI9jgWDOGpXDAFSXJ54rgpeHSq6qKQlQ3vwaCgQz861wb+5iJ/kk+B/qm3i5Yfghc/+XSw==}
+  ai@5.0.11:
+    resolution: {integrity: sha512-PtiQAnhlWuN3Y2z9PifM/9XIQ0HIoHjZqEu7zHffyGEXiqHLtrJpt4IiGVzUTAKxXM5JCtO9sD/hwGXDp7ZYsw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -1925,11 +1938,11 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  vaul@0.9.9:
-    resolution: {integrity: sha512-7afKg48srluhZwIkaU+lgGtFCUsYBSGOl8vcc8N/M3YQlZFlynHD15AE+pwrYdc826o7nrIND4lL9Y6b9WWZZQ==}
+  vaul@1.1.2:
+    resolution: {integrity: sha512-ZFkClGpWyI2WUQjdLJ/BaGuV6AVQiJ3uELGk3OYtP+B6yCO7Cmn9vPFXVJkRaGkOJu3m8bQMgtyzNHixULceQA==}
     peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
 
   victory-vendor@36.9.2:
     resolution: {integrity: sha512-PnpQQMuxlwYdocC8fIJqVXvkeViHYzotI+NJrCuav0ZYFoq912ZHBk3mCeuj+5/VpodOjPe1z0Fk2ihgzlXqjQ==}
@@ -1961,30 +1974,38 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod@3.25.67:
-    resolution: {integrity: sha512-idA2YXwpCdqUSKRCACDE6ItZD9TZzy3OZMtpfLoh6oPR47lipysRrJfjzMqFxQ3uJuUPyUeWe1r9vLH33xO/Qw==}
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
 
-  '@ai-sdk/gateway@1.0.4(zod@3.25.67)':
+  '@ai-sdk/gateway@1.0.5(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.67)
-      zod: 3.25.67
+      '@ai-sdk/provider-utils': 3.0.2(zod@3.25.76)
+      zod: 3.25.76
 
-  '@ai-sdk/google@2.0.4(zod@3.25.67)':
+  '@ai-sdk/google@2.0.4(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.67)
-      zod: 3.25.67
+      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.76)
+      zod: 3.25.76
 
-  '@ai-sdk/provider-utils@3.0.1(zod@3.25.67)':
+  '@ai-sdk/provider-utils@3.0.1(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.3
-      zod: 3.25.67
-      zod-to-json-schema: 3.24.6(zod@3.25.67)
+      zod: 3.25.76
+      zod-to-json-schema: 3.24.6(zod@3.25.76)
+
+  '@ai-sdk/provider-utils@3.0.2(zod@3.25.76)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@standard-schema/spec': 1.0.0
+      eventsource-parser: 3.0.3
+      zod: 3.25.76
+      zod-to-json-schema: 3.24.6(zod@3.25.76)
 
   '@ai-sdk/provider@2.0.0':
     dependencies:
@@ -2022,6 +2043,8 @@ snapshots:
       react-dom: 19.0.0(react@19.0.0)
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@google/generative-ai@0.24.1': {}
 
   '@hookform/resolvers@3.10.0(react-hook-form@7.60.0(react@19.0.0))':
     dependencies:
@@ -3015,13 +3038,13 @@ snapshots:
     dependencies:
       '@types/node': 22.0.0
 
-  ai@5.0.10(zod@3.25.67):
+  ai@5.0.11(zod@3.25.76):
     dependencies:
-      '@ai-sdk/gateway': 1.0.4(zod@3.25.67)
+      '@ai-sdk/gateway': 1.0.5(zod@3.25.76)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.1(zod@3.25.67)
+      '@ai-sdk/provider-utils': 3.0.2(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
-      zod: 3.25.67
+      zod: 3.25.76
 
   aria-hidden@1.2.6:
     dependencies:
@@ -3634,7 +3657,7 @@ snapshots:
     dependencies:
       react: 19.0.0
 
-  vaul@0.9.9(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  vaul@1.1.2(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       '@radix-ui/react-dialog': 1.1.4(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react: 19.0.0
@@ -3671,8 +3694,8 @@ snapshots:
 
   yallist@5.0.0: {}
 
-  zod-to-json-schema@3.24.6(zod@3.25.67):
+  zod-to-json-schema@3.24.6(zod@3.25.76):
     dependencies:
-      zod: 3.25.67
+      zod: 3.25.76
 
-  zod@3.25.67: {}
+  zod@3.25.76: {}
