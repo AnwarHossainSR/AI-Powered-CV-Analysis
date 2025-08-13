@@ -37,11 +37,11 @@ export default async function DashboardPage() {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single(); // Use maybeSingle() instead of single()
+    .single();
 
-  // if (!profile) {
-  //   redirect("/auth/login");
-  // }
+  if (!profile) {
+    redirect("/auth/login");
+  }
 
   // Get user's resumes
   const { data: resumes } = await supabase

@@ -1,29 +1,29 @@
-import type React from "react"
-import { redirect } from "next/navigation"
-import { checkAdminAccess } from "@/lib/admin"
-import { createClient } from "@/lib/supabase/server"
-import AdminNav from "@/components/admin-nav"
+import AdminNav from "@/components/admin-nav";
+import { checkAdminAccess } from "@/lib/admin";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type React from "react";
 
 export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const supabase = createClient()
+  const supabase = await createClient();
 
   // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Check admin access
-  const isAdmin = await checkAdminAccess(user.id)
+  const isAdmin = await checkAdminAccess(user.id);
   if (!isAdmin) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
   return (
@@ -31,5 +31,5 @@ export default async function AdminLayout({
       <AdminNav user={user} />
       <main>{children}</main>
     </div>
-  )
+  );
 }

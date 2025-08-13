@@ -22,7 +22,7 @@ interface BillingPageProps {
 }
 
 export default async function BillingPage({ searchParams }: BillingPageProps) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Get user
   const {

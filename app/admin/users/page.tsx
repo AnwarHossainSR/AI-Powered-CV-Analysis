@@ -1,40 +1,48 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { checkAdminAccess } from "@/lib/admin"
-import AdminNav from "@/components/admin-nav"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Users, Search, MoreHorizontal } from "lucide-react"
+import AdminNav from "@/components/admin-nav";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { checkAdminAccess } from "@/lib/admin";
+import { createClient } from "@/lib/supabase/server";
+import { MoreHorizontal, Search, Users } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function AdminUsersPage() {
-  const supabase = createClient()
+  const supabase = await createClient();
 
   // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Check admin access
-  const isAdmin = await checkAdminAccess(user.id)
+  const isAdmin = await checkAdminAccess(user.id);
   if (!isAdmin) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
   // Get all users with their stats
   const { data: users } = await supabase
     .from("profiles")
-    .select(`
+    .select(
+      `
       *,
       resumes(count),
       credit_transactions(count)
-    `)
-    .order("created_at", { ascending: false })
+    `
+    )
+    .order("created_at", { ascending: false });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,8 +51,12 @@ export default async function AdminUsersPage() {
       <main className="py-10">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="mt-1 text-sm text-gray-600">Manage user accounts and monitor activity.</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              User Management
+            </h1>
+            <p className="mt-1 text-sm text-gray-600">
+              Manage user accounts and monitor activity.
+            </p>
           </div>
 
           <Card>
@@ -55,12 +67,17 @@ export default async function AdminUsersPage() {
                     <Users className="h-5 w-5 mr-2" />
                     All Users ({users?.length || 0})
                   </CardTitle>
-                  <CardDescription>Complete list of registered users</CardDescription>
+                  <CardDescription>
+                    Complete list of registered users
+                  </CardDescription>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Search users..." className="pl-10 w-64" />
+                    <Input
+                      placeholder="Search users..."
+                      className="pl-10 w-64"
+                    />
                   </div>
                 </div>
               </div>
@@ -96,19 +113,29 @@ export default async function AdminUsersPage() {
                         <tr key={profile.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{profile.full_name || "No name"}</div>
-                              <div className="text-sm text-gray-500">{profile.email}</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {profile.full_name || "No name"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {profile.email}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Badge
-                              variant={profile.subscription_status === "free" ? "secondary" : "default"}
+                              variant={
+                                profile.subscription_status === "free"
+                                  ? "secondary"
+                                  : "default"
+                              }
                               className="capitalize"
                             >
                               {profile.subscription_status}
                             </Badge>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{profile.credits}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {profile.credits}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {profile.resumes?.[0]?.count || 0}
                           </td>
@@ -128,8 +155,12 @@ export default async function AdminUsersPage() {
               ) : (
                 <div className="text-center py-8">
                   <Users className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
-                  <p className="mt-1 text-sm text-gray-500">No users have registered yet.</p>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    No users found
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    No users have registered yet.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -137,5 +168,5 @@ export default async function AdminUsersPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
