@@ -87,12 +87,12 @@ export async function updateSession(request: NextRequest) {
 
     // Check if user is admin
     const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("role")
-      .eq("user_id", session.user.id)
+      .from("admin_users")
+      .select("*")
+      .eq("id", session.user.id)
       .single();
 
-    if (!profile || profile.role !== "admin") {
+    if (!profile || profile.role !== "super_admin") {
       const redirectUrl = new URL("/dashboard", request.url);
       return NextResponse.redirect(redirectUrl);
     }

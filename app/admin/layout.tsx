@@ -1,10 +1,10 @@
-import AdminNav from "@/components/admin-nav"
-import type React from "react"
+import AdminNav from "@/components/admin-nav";
+import type React from "react";
 
 export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   // removed authentication checks as they're now handled in middleware
   return (
@@ -15,5 +15,5 @@ export default async function AdminLayout({
         <div className="p-4 lg:p-8">{children}</div>
       </main>
     </div>
-  )
+  );
 }
