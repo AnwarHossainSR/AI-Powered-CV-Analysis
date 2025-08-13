@@ -23,9 +23,10 @@ interface ResumeDetailsPageProps {
   };
 }
 
-export default async function ResumeDetailsPage({
-  params,
-}: ResumeDetailsPageProps) {
+export default async function ResumeDetailsPage(
+  props: Promise<ResumeDetailsPageProps>
+) {
+  const { params } = await props;
   const supabase = await createClient();
 
   // Get user
