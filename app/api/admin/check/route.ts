@@ -19,7 +19,6 @@ export async function GET() {
       .select("*")
       .eq("id", user.id)
       .single();
-    console.log("adminUser", adminUser);
     return NextResponse.json({ isAdmin: !!adminUser });
   } catch (error) {
     console.error("Error checking admin status:", error);

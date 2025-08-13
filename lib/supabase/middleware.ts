@@ -51,8 +51,8 @@ export async function updateSession(request: NextRequest) {
 
   // Refresh session if expired - required for Server Components
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Protected routes - redirect to login if not authenticated
   const isAuthRoute =
@@ -72,7 +72,7 @@ export async function updateSession(request: NextRequest) {
 
   // Handle protected routes
   if (isProtectedRoute && !isAuthRoute) {
-    if (!session) {
+    if (!user) {
       const redirectUrl = new URL("/auth/login", request.url);
       return NextResponse.redirect(redirectUrl);
     }
@@ -80,7 +80,7 @@ export async function updateSession(request: NextRequest) {
 
   // Handle admin routes with role checking
   if (isAdminRoute && !isAuthRoute) {
-    if (!session) {
+    if (!user) {
       const redirectUrl = new URL("/auth/login", request.url);
       return NextResponse.redirect(redirectUrl);
     }
@@ -89,7 +89,7 @@ export async function updateSession(request: NextRequest) {
     const { data: profile } = await supabase
       .from("admin_users")
       .select("*")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
 
     if (!profile || profile.role !== "super_admin") {
