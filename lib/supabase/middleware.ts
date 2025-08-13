@@ -1,5 +1,6 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { config } from "../config";
 import { isSupabaseConfigured } from "./server";
 
 export async function updateSession(request: NextRequest) {
@@ -10,10 +11,32 @@ export async function updateSession(request: NextRequest) {
     });
   }
 
-  const res = NextResponse.next();
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
-  // Create a Supabase client configured to use cookies
-  const supabase = createMiddlewareClient({ req: request, res });
+  const supabase = createServerClient(
+    config.supabaseUrl!,
+    config.supabaseAnonKey!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
 
   // Check if this is an auth callback
   const requestUrl = new URL(request.url);
@@ -56,5 +79,5 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  return res;
+  return supabaseResponse;
 }

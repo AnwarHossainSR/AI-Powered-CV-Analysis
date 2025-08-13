@@ -1,4 +1,4 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserClient } from "@supabase/ssr";
 import { config } from "../config";
 
 // Check if Supabase environment variables are available
@@ -9,4 +9,6 @@ export const isSupabaseConfigured =
   config.supabaseAnonKey.length > 0;
 
 // Create a singleton instance of the Supabase client for Client Components
-export const supabase = createClientComponentClient();
+export const supabase = isSupabaseConfigured
+  ? createBrowserClient(config.supabaseUrl!, config.supabaseAnonKey!)
+  : null;

@@ -1,9 +1,27 @@
 "use server";
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { config } from "./config";
+
+// Helper to create Supabase client for server actions
+async function createClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(config.supabaseUrl!, config.supabaseAnonKey!, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookieStore.set(name, value, options);
+        });
+      },
+    },
+  });
+}
 
 // Update the signIn function to handle redirects properly
 export async function signIn(prevState: any, formData: FormData) {
@@ -20,8 +38,7 @@ export async function signIn(prevState: any, formData: FormData) {
     return { error: "Email and password are required" };
   }
 
-  const cookieStore = cookies();
-  const supabase = createServerActionClient({ cookies: () => cookieStore });
+  const supabase = await createClient();
 
   try {
     const { error } = await supabase.auth.signInWithPassword({
@@ -57,8 +74,7 @@ export async function signUp(prevState: any, formData: FormData) {
     return { error: "Email and password are required" };
   }
 
-  const cookieStore = cookies();
-  const supabase = createServerActionClient({ cookies: () => cookieStore });
+  const supabase = await createClient();
 
   try {
     const { error } = await supabase.auth.signUp({
@@ -86,8 +102,7 @@ export async function signUp(prevState: any, formData: FormData) {
 }
 
 export async function signOut() {
-  const cookieStore = cookies();
-  const supabase = createServerActionClient({ cookies: () => cookieStore });
+  const supabase = await createClient();
 
   await supabase.auth.signOut();
   redirect("/auth/login");
