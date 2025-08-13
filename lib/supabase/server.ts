@@ -1,13 +1,9 @@
+// lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 import { config } from "../config";
-
-// Check if Supabase environment variables are available
-export const isSupabaseConfigured =
-  typeof config.supabaseUrl === "string" &&
-  config.supabaseUrl.length > 0 &&
-  typeof config.supabaseAnonKey === "string" &&
-  config.supabaseAnonKey.length > 0;
+import { isSupabaseConfigured } from "../utils";
 
 // Internal function to create Supabase client
 export async function createClient() {
@@ -59,6 +55,68 @@ export async function createClient() {
   });
 }
 
+// For use in Middleware - separate function that accepts request
+export async function createMiddlewareClient(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
+
+  if (!isSupabaseConfigured) {
+    console.warn(
+      "Supabase is not configured in middleware. Please add your Supabase URL and anon key to your environment variables."
+    );
+    return { supabase: null, response: supabaseResponse };
+  }
+
+  const supabase = createServerClient(
+    config.supabaseUrl!,
+    config.supabaseAnonKey!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  return { supabase, response: supabaseResponse };
+}
+
+// For use in Route Handlers (API routes)
+export async function createRouteHandlerClient(request: NextRequest) {
+  if (!isSupabaseConfigured) {
+    console.warn(
+      "Supabase is not configured. Please add your Supabase URL and anon key to your environment variables."
+    );
+    throw new Error("Supabase configuration missing");
+  }
+
+  return createServerClient(config.supabaseUrl!, config.supabaseAnonKey!, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        // Route handlers can't set cookies directly
+        // You'll need to handle this in the response
+        console.warn("Setting cookies in route handler - handle in response");
+      },
+    },
+  });
+}
+
 // Direct auth helpers - use these instead of creating client instances
 export async function getSession() {
   const supabase = await createClient();
@@ -70,8 +128,14 @@ export async function getUser() {
   return supabase.auth.getUser();
 }
 
-// For other operations, export the client creator
-export { createClient as supabase };
+// Export configuration check function (not the boolean itself)
+export async function getSupabaseConfig() {
+  return {
+    isConfigured: isSupabaseConfigured,
+    url: config.supabaseUrl,
+    hasAnonKey: Boolean(config.supabaseAnonKey),
+  };
+}
 
-// Also export the promise for direct awaiting
-export const supabaseClient = createClient();
+// For other operations, export the client creator (alias)
+export { createClient as supabase };

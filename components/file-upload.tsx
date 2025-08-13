@@ -26,6 +26,7 @@ interface UploadedFile {
   id?: string;
   status: "ready" | "uploading" | "processing" | "completed" | "failed";
   progress?: number;
+  error?: string;
 }
 
 export default function FileUpload({
@@ -87,6 +88,27 @@ export default function FileUpload({
     setUploadedFiles((prev) => [...prev, ...filesWithStatus]);
   }, []);
 
+  // Helper function to update file status with error handling
+  const updateFileStatus = (
+    index: number,
+    status: UploadedFile["status"],
+    progress?: number,
+    error?: string
+  ) => {
+    setUploadedFiles((prev) =>
+      prev.map((f, idx) =>
+        idx === index
+          ? {
+              ...f,
+              status,
+              progress: progress !== undefined ? progress : f.progress,
+              error,
+            }
+          : f
+      )
+    );
+  };
+
   const uploadFiles = async () => {
     if (uploadedFiles.length === 0) return;
     if (credits < uploadedFiles.length) {
@@ -97,98 +119,145 @@ export default function FileUpload({
     }
 
     setUploading(true);
+    let hasSuccessfulUploads = false;
 
     try {
-      for (let i = 0; i < uploadedFiles.length; i++) {
-        const uploadedFile = uploadedFiles[i];
+      const uploadPromises = uploadedFiles.map(async (uploadedFile, index) => {
         const file = uploadedFile.file;
 
-        // More robust file validation
-        if (!file || !file.name || file.size === undefined || file.size === 0) {
-          console.error(`Invalid file at index ${i}:`, {
-            exists: !!file,
-            hasName: !!file?.name,
-            hasSize: file?.size !== undefined,
-            size: file?.size,
-          });
-          toast.error(`Invalid file: ${file?.name || "Unknown file"}`);
-          setUploadedFiles((prev) =>
-            prev.map((f, idx) =>
-              idx === i ? { ...f, status: "failed", progress: 0 } : f
-            )
-          );
-          continue;
-        }
-
-        // Update file status to uploading
-        setUploadedFiles((prev) =>
-          prev.map((f, idx) =>
-            idx === i ? { ...f, status: "uploading", progress: 25 } : f
-          )
-        );
-
         try {
+          // More robust file validation
+          if (
+            !file ||
+            !file.name ||
+            file.size === undefined ||
+            file.size === 0
+          ) {
+            const errorMsg = `Invalid file: ${file?.name || "Unknown file"}`;
+            console.error(`Invalid file at index ${index}:`, {
+              exists: !!file,
+              hasName: !!file?.name,
+              hasSize: file?.size !== undefined,
+              size: file?.size,
+            });
+            updateFileStatus(index, "failed", 0, errorMsg);
+            toast.error(errorMsg);
+            return;
+          }
+
+          // Update file status to uploading
+          updateFileStatus(index, "uploading", 25);
+
           // Create FormData for file upload
           const formData = new FormData();
           formData.append("file", file);
 
-          // Send file directly to API route
-          const response = await fetch("/api/resumes/upload", {
-            method: "POST",
-            body: formData,
-          });
+          // Set up fetch with timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            controller.abort();
+          }, 60000); // 60 second timeout
 
-          const result = await response.json();
+          let response;
+          try {
+            response = await fetch("/api/resumes/upload", {
+              method: "POST",
+              body: formData,
+              signal: controller.signal,
+            });
+          } catch (fetchError: any) {
+            clearTimeout(timeoutId);
 
+            if (fetchError.name === "AbortError") {
+              throw new Error("Upload timeout - please try again");
+            }
+
+            // Network or other fetch errors
+            throw new Error(fetchError.message || "Network error occurred");
+          }
+
+          clearTimeout(timeoutId);
+
+          // Check if response is ok
           if (!response.ok) {
-            throw new Error(result.error || "Upload failed");
+            let errorMessage = "Upload failed";
+            try {
+              const errorData = await response.json();
+              errorMessage =
+                errorData.error ||
+                errorData.message ||
+                `Server error: ${response.status}`;
+            } catch (jsonError) {
+              errorMessage = `Server error: ${response.status} ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+          }
+
+          // Parse response
+          let result;
+          try {
+            result = await response.json();
+          } catch (jsonError) {
+            throw new Error("Invalid response from server");
+          }
+
+          // Validate response data
+          if (!result || !result.resumeId) {
+            throw new Error("Invalid response: missing resume ID");
           }
 
           // Update progress through different stages
-          setUploadedFiles((prev) =>
-            prev.map((f, idx) =>
-              idx === i ? { ...f, status: "processing", progress: 75 } : f
-            )
-          );
+          updateFileStatus(index, "processing", 75);
+
+          // Simulate a small delay for processing feedback (optional)
+          await new Promise((resolve) => setTimeout(resolve, 500));
 
           // File processed successfully
-          setUploadedFiles((prev) =>
-            prev.map((f, idx) =>
-              idx === i
-                ? {
-                    ...f,
-                    id: result.resumeId,
-                    status: "completed",
-                    progress: 100,
-                  }
-                : f
-            )
-          );
+          updateFileStatus(index, "completed", 100);
+          hasSuccessfulUploads = true;
 
           toast.success(`${file.name} analyzed successfully!`);
         } catch (processingError: any) {
-          console.error("Processing error:", processingError);
-          toast.error(
-            `Failed to analyze ${file.name}: ${processingError.message}`
-          );
+          console.error(`Processing error for file ${index}:`, processingError);
+          const errorMessage =
+            processingError.message || "Unknown error occurred";
 
-          setUploadedFiles((prev) =>
-            prev.map((f, idx) =>
-              idx === i ? { ...f, status: "failed", progress: 0 } : f
-            )
-          );
+          updateFileStatus(index, "failed", 0, errorMessage);
+          toast.error(`Failed to analyze ${file.name}: ${errorMessage}`);
         }
-      }
+      });
 
-      // Wait a moment then refresh and redirect
-      setTimeout(() => {
-        onUploadSuccess?.();
-        router.refresh();
-        router.push("/dashboard");
-      }, 2000);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      toast.error("Upload failed. Please try again.");
+      // Wait for all uploads to complete
+      await Promise.allSettled(uploadPromises);
+
+      // Only redirect if we have successful uploads
+      if (hasSuccessfulUploads) {
+        // Wait a moment then refresh and redirect
+        setTimeout(() => {
+          onUploadSuccess?.();
+          router.refresh();
+          router.push("/dashboard");
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error("General upload error:", error);
+
+      // Mark any files that are still in progress as failed
+      setUploadedFiles((prev) =>
+        prev.map((f, idx) => {
+          if (f.status === "uploading" || f.status === "processing") {
+            return {
+              ...f,
+              status: "failed",
+              progress: 0,
+              error: "Upload interrupted",
+            };
+          }
+          return f;
+        })
+      );
+
+      toast.error("Upload process failed. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -208,6 +277,10 @@ export default function FileUpload({
 
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const retryFile = (index: number) => {
+    updateFileStatus(index, "ready", undefined, undefined);
   };
 
   const getStatusIcon = (status: string) => {
@@ -268,6 +341,9 @@ export default function FileUpload({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
+
+  const readyFiles = uploadedFiles.filter((f) => f.status === "ready");
+  const failedFiles = uploadedFiles.filter((f) => f.status === "failed");
 
   return (
     <div className="space-y-6">
@@ -373,6 +449,16 @@ export default function FileUpload({
                             </span>
                           </div>
 
+                          {/* Error Message */}
+                          {uploadedFile.status === "failed" &&
+                            uploadedFile.error && (
+                              <div className="mt-2">
+                                <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                                  {uploadedFile.error}
+                                </p>
+                              </div>
+                            )}
+
                           {/* Progress Bar */}
                           {uploadedFile.progress !== undefined &&
                             uploadedFile.progress > 0 &&
@@ -395,18 +481,33 @@ export default function FileUpload({
                         </div>
                       </div>
 
-                      {/* Remove Button */}
-                      {uploadedFile.status !== "processing" &&
-                        uploadedFile.status !== "completed" && (
+                      {/* Action Buttons */}
+                      <div className="flex items-center space-x-2 ml-4">
+                        {/* Retry Button for Failed Files */}
+                        {uploadedFile.status === "failed" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => retryFile(index)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Upload className="h-4 w-4 mr-1" />
+                            Retry
+                          </Button>
+                        )}
+
+                        {/* Remove Button */}
+                        {uploadedFile.status !== "processing" && (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFile(index)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 hover:bg-gray-100 ml-4"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -420,15 +521,15 @@ export default function FileUpload({
                   <div className="text-sm">
                     <span className="text-gray-600">Cost:</span>
                     <span className="font-semibold text-gray-900 ml-1">
-                      {uploadedFiles.length} credit
-                      {uploadedFiles.length !== 1 ? "s" : ""}
+                      {readyFiles.length} credit
+                      {readyFiles.length !== 1 ? "s" : ""}
                     </span>
                   </div>
                   <div className="text-sm">
                     <span className="text-gray-600">Available:</span>
                     <span
                       className={`font-semibold ml-1 ${
-                        credits >= uploadedFiles.length
+                        credits >= readyFiles.length
                           ? "text-green-600"
                           : "text-red-600"
                       }`}
@@ -436,14 +537,21 @@ export default function FileUpload({
                       {credits} credit{credits !== 1 ? "s" : ""}
                     </span>
                   </div>
+                  {failedFiles.length > 0 && (
+                    <div className="text-sm">
+                      <span className="text-red-600 font-medium">
+                        {failedFiles.length} failed
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <Button
                   onClick={uploadFiles}
                   disabled={
                     uploading ||
-                    credits < uploadedFiles.length ||
-                    uploadedFiles.length === 0
+                    credits < readyFiles.length ||
+                    readyFiles.length === 0
                   }
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:opacity-50"
                 >
@@ -455,8 +563,8 @@ export default function FileUpload({
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      Analyze {uploadedFiles.length} File
-                      {uploadedFiles.length !== 1 ? "s" : ""}
+                      Analyze {readyFiles.length} File
+                      {readyFiles.length !== 1 ? "s" : ""}
                     </>
                   )}
                 </Button>

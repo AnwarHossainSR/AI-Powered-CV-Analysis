@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       const {
         data: { publicUrl },
       } = supabase.storage.from("resumes").getPublicUrl(fileName);
-
+      console.log("file", file);
       // Create resume record with pending status
       const { data: resume, error: resumeError } = await supabase
         .from("resumes")
@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
           file_url: publicUrl,
           file_size: file.size,
           file_type: file.type,
+          file_path: fileName,
           status: "processing",
         })
         .select()
@@ -125,6 +126,12 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error("Parsed data insertion error:", insertError);
+        const { error: updateError } = await supabase
+          .from("resumes")
+          .update({
+            status: "failed",
+          })
+          .eq("id", resume.id);
         throw new Error("Failed to save parsed data");
       }
 

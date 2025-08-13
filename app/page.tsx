@@ -1,6 +1,7 @@
 import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/utils";
 import { ArrowRight, BarChart3, CheckCircle, Shield, Zap } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";

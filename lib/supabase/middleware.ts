@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { config } from "../config";
-import { isSupabaseConfigured } from "./server";
+import { isSupabaseConfigured } from "../utils";
 
 export async function updateSession(request: NextRequest) {
   // If Supabase is not configured, just continue without auth

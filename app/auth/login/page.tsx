@@ -1,5 +1,6 @@
 import LoginForm from "@/components/login-form";
-import { getSession, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getSession } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/utils";
 import { redirect } from "next/navigation";
 
 export default async function LoginPage() {

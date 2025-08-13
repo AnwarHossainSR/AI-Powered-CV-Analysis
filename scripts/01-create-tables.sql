@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS public.resumes (
     file_path TEXT NOT NULL,
     error_message TEXT,
     ai_summary TEXT,
+    confidence_score DECIMAL(3,2),
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
