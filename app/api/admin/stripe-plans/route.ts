@@ -48,7 +48,7 @@ export async function GET() {
   }
 }
 
-// POST - Create new Stripe product with price
+// POST - Create new Stripe product with price and sync to database
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, price, currency = "usd", interval_type, credits } = body
+    const { name, description, price, currency = "usd", interval_type, credits, features = [] } = body
 
     // Create Stripe product
     const stripeProduct = await stripe.products.create({
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         credits: credits?.toString() || "0",
         interval_type,
+        features: JSON.stringify(features),
       },
     })
 
@@ -96,8 +97,32 @@ export async function POST(request: NextRequest) {
 
     const stripePrice = await stripe.prices.create(priceData)
 
+    const billingPlanData = {
+      name,
+      description,
+      price: Number(price),
+      currency: currency.toLowerCase(),
+      interval_type,
+      credits: credits || null,
+      features: features || [],
+      stripe_price_id: stripePrice.id,
+      stripe_product_id: stripeProduct.id,
+      is_active: true,
+      sort_order: 0,
+    }
+
+    const { error: dbError } = await supabase.from("billing_plans").insert(billingPlanData)
+
+    if (dbError) {
+      console.error("Error syncing to database:", dbError)
+      // Archive the Stripe product if database sync fails
+      await stripe.products.update(stripeProduct.id, { active: false })
+      return NextResponse.json({ error: "Failed to sync to database" }, { status: 500 })
+    }
+
     return NextResponse.json({
       success: true,
+      message: "Stripe product created and synced to database",
       product: stripeProduct,
       price: stripePrice,
     })
