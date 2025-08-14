@@ -20,10 +20,9 @@ interface CoverLetterPageProps {
   };
 }
 
-export default async function CoverLetterPage({
-  params,
-}: CoverLetterPageProps) {
+export default async function CoverLetterPage(props: CoverLetterPageProps) {
   const supabase = await createClient();
+  const { id } = await props.params; // ✅ await the params
 
   // Get user
   const {
@@ -49,7 +48,7 @@ export default async function CoverLetterPage({
   const { data: resume } = await supabase
     .from("resumes")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", user.id)
     .single();
 
