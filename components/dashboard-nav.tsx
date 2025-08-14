@@ -17,6 +17,7 @@ import {
   ChevronRight,
   BarChart3,
   Users,
+  Zap,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -73,6 +74,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
     { name: "Resumes", href: "/admin/resumes", icon: FileText },
     { name: "Transactions", href: "/admin/transactions", icon: CreditCard },
     { name: "Billing Plans", href: "/admin/billing-plans", icon: CreditCard },
+    { name: "Stripe Plans", href: "/admin/stripe-plans", icon: Zap },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 
