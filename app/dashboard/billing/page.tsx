@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { AlertCircle, CheckCircle, CreditCard, Crown, Zap, TrendingUp } from "lucide-react"
+import { getUserProfile, getUserCreditTransactions } from "@/lib/queries"
 
 interface BillingPageProps {
   searchParams: {
@@ -22,16 +23,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
-
-  // Get recent transactions
-  const { data: transactions } = await supabase
-    .from("credit_transactions")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false })
-    .limit(10)
+  const profile = await getUserProfile(user!.id)
+  const transactions = await getUserCreditTransactions(user!.id)
 
   // Explicitly access searchParams properties
   const { success, canceled } = await searchParams
@@ -150,7 +143,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 <CardContent>
                   {transactions && transactions.length > 0 ? (
                     <div className="space-y-3">
-                      {transactions.map((transaction: any) => (
+                      {transactions.slice(0, 10).map((transaction: any) => (
                         <div
                           key={transaction.id}
                           className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:shadow-md hover:border-cyan-200 transition-all duration-300 bg-gradient-to-r from-white to-gray-50/30"

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/server"
 import { CreditCard, Search, TrendingDown, TrendingUp } from "lucide-react"
+import { getAllTransactions } from "@/lib/queries"
 
 export default async function AdminTransactionsPage() {
   const supabase = await createClient()
@@ -12,16 +13,7 @@ export default async function AdminTransactionsPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Get all transactions with user info
-  const { data: transactions } = await supabase
-    .from("credit_transactions")
-    .select(
-      `
-      *,
-      profiles(full_name, email)
-    `,
-    )
-    .order("created_at", { ascending: false })
+  const transactions = await getAllTransactions()
 
   const getTransactionIcon = (type: string) => {
     switch (type) {

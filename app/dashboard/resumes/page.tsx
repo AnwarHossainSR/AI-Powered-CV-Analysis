@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Resume } from "@/lib/types"
 import { AlertCircle, Calendar, CheckCircle, Clock, Eye, FileDown, FileText, BarChart3, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { getUserProfile, getUserResumes } from "@/lib/queries"
 
 export default async function ResumesPage() {
   const supabase = await createClient()
@@ -15,15 +16,8 @@ export default async function ResumesPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
-
-  // Get all user's resumes
-  const { data: resumes } = await supabase
-    .from("resumes")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false })
+  const profile = await getUserProfile(user!.id)
+  const resumes = await getUserResumes(user!.id)
 
   const getStatusIcon = (status: string) => {
     switch (status) {

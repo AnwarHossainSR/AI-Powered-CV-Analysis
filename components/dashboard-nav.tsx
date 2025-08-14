@@ -72,6 +72,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Resumes", href: "/admin/resumes", icon: FileText },
     { name: "Transactions", href: "/admin/transactions", icon: CreditCard },
+    { name: "Billing Plans", href: "/admin/billing-plans", icon: CreditCard },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 

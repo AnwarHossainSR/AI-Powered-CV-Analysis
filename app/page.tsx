@@ -1,10 +1,8 @@
 import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/utils";
 import { ArrowRight, BarChart3, CheckCircle, Shield, Zap } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 export default async function Home() {
   // If Supabase is not configured, show setup message directly
@@ -16,17 +14,6 @@ export default async function Home() {
         </h1>
       </div>
     );
-  }
-
-  // Get the user from the server
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // If user is logged in, redirect to dashboard
-  if (user) {
-    redirect("/dashboard");
   }
 
   return (

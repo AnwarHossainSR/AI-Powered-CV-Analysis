@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/server"
 import { MoreHorizontal, Search, Users } from "lucide-react"
+import { getAllUsers } from "@/lib/queries"
 
 export default async function AdminUsersPage() {
   const supabase = await createClient()
@@ -13,17 +14,7 @@ export default async function AdminUsersPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Get all users with their stats
-  const { data: users } = await supabase
-    .from("profiles")
-    .select(
-      `
-      *,
-      resumes(count),
-      credit_transactions(count)
-    `,
-    )
-    .order("created_at", { ascending: false })
+  const users = await getAllUsers()
 
   return (
     <>
