@@ -57,7 +57,9 @@ export default async function PricingPage() {
     return `${credits.toLocaleString()} credits`
   }
 
-  const popularPlanIndex = Math.floor((plans?.length || 0) / 2)
+  const popularPlanIndex =
+    plans?.findIndex((plan) => plan.interval_type === "monthly" && plan.price > 0) ??
+    Math.floor((plans?.length || 0) / 2)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,12 +73,15 @@ export default async function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {plans?.map((plan: BillingPlan, index: number) => (
-            <Card key={plan.id} className={`relative ${index === popularPlanIndex ? "ring-2 ring-blue-600" : ""}`}>
+            <Card
+              key={plan.id}
+              className={`relative ${index === popularPlanIndex ? "ring-2 ring-blue-600 scale-105" : ""}`}
+            >
               {index === popularPlanIndex && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
                     Most Popular
                   </span>
                 </div>
@@ -114,7 +119,7 @@ export default async function PricingPage() {
                     <Button
                       className={`w-full ${
                         index === popularPlanIndex
-                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                           : "bg-gray-900 hover:bg-gray-800 text-white"
                       }`}
                     >
