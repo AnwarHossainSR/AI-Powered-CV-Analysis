@@ -1,150 +1,123 @@
-import DashboardNav from "@/components/dashboard-nav";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
-import type { Resume } from "@/lib/types";
-import {
-  AlertCircle,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Eye,
-  FileDown,
-  FileText,
-} from "lucide-react";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import DashboardNav from "@/components/dashboard-nav"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/server"
+import type { Resume } from "@/lib/types"
+import { AlertCircle, Calendar, CheckCircle, Clock, Eye, FileDown, FileText, BarChart3, Sparkles } from "lucide-react"
+import Link from "next/link"
 
 export default async function ResumesPage() {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
-  // Get user
+  // Get user (middleware ensures user exists)
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
+  } = await supabase.auth.getUser()
 
   // Get user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    redirect("/auth/login");
-  }
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
 
   // Get all user's resumes
   const { data: resumes } = await supabase
     .from("resumes")
     .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false })
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="h-5 w-5 text-emerald-500" />
       case "processing":
-        return <Clock className="h-5 w-5 text-yellow-500" />;
+        return <Clock className="h-5 w-5 text-amber-500" />
       case "failed":
-        return <AlertCircle className="h-5 w-5 text-red-500" />;
+        return <AlertCircle className="h-5 w-5 text-red-500" />
       default:
-        return <Clock className="h-5 w-5 text-gray-500" />;
+        return <Clock className="h-5 w-5 text-gray-500" />
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-100 text-emerald-800 border-emerald-200"
       case "processing":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-amber-100 text-amber-800 border-amber-200"
       case "failed":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border-red-200"
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200"
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNav user={user} credits={profile.credits} />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50/30">
+      <DashboardNav user={user!} credits={profile?.credits || 0} />
 
       <div className="lg:pl-64">
-        <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900 font-heading">
-                Resume History
-              </h1>
-              <p className="mt-1 text-sm text-gray-600">
-                View and manage all your uploaded resumes and their analysis
-                results.
-              </p>
+        <main className="py-12">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-12">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4">
+                  <BarChart3 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 font-heading">Your Resume Evolution</h1>
+                  <p className="text-lg text-gray-600 mt-2">Track your progress and improvements over time</p>
+                </div>
+              </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <FileText className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">
-                        Total Resumes
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {resumes?.length || 0}
-                      </p>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-200/30 rounded-full -mr-16 -mt-16"></div>
+                <CardContent className="p-8 relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-cyan-700 uppercase tracking-wide">Total Resumes</p>
+                      <p className="text-4xl font-bold text-cyan-900 mt-2">{resumes?.length || 0}</p>
+                    </div>
+                    <div className="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center">
+                      <FileText className="w-8 h-8 text-white" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">
-                        Analyzed
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 rounded-full -mr-16 -mt-16"></div>
+                <CardContent className="p-8 relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-emerald-700 uppercase tracking-wide">Analyzed</p>
+                      <p className="text-4xl font-bold text-emerald-900 mt-2">
+                        {resumes?.filter((r: Resume) => r.status === "completed").length || 0}
                       </p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {resumes?.filter(
-                          (r: Resume) => r.status === "completed"
-                        ).length || 0}
-                      </p>
+                    </div>
+                    <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-white" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Clock className="h-8 w-8 text-yellow-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">
-                        Processing
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-amber-50 to-amber-100/50 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/30 rounded-full -mr-16 -mt-16"></div>
+                <CardContent className="p-8 relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-amber-700 uppercase tracking-wide">Processing</p>
+                      <p className="text-4xl font-bold text-amber-900 mt-2">
+                        {resumes?.filter((r: Resume) => r.status === "processing" || r.status === "pending").length ||
+                          0}
                       </p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {resumes?.filter(
-                          (r: Resume) =>
-                            r.status === "processing" || r.status === "pending"
-                        ).length || 0}
-                      </p>
+                    </div>
+                    <div className="w-16 h-16 bg-amber-600 rounded-2xl flex items-center justify-center">
+                      <Clock className="w-8 h-8 text-white" />
                     </div>
                   </div>
                 </CardContent>
@@ -152,117 +125,126 @@ export default async function ResumesPage() {
             </div>
 
             {/* Resume List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-heading">All Resumes</CardTitle>
-                <CardDescription>
-                  Complete history of your uploaded resumes
-                </CardDescription>
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-heading text-gray-900 flex items-center">
+                      <Sparkles className="w-6 h-6 mr-3 text-purple-600" />
+                      All Resumes
+                    </CardTitle>
+                    <CardDescription className="text-base text-gray-600 mt-2">
+                      Complete history of your uploaded resumes
+                    </CardDescription>
+                  </div>
+                  <Link href="/dashboard/upload">
+                    <Button className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white shadow-lg">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Upload New Resume
+                    </Button>
+                  </Link>
+                </div>
               </CardHeader>
               <CardContent>
                 {resumes && resumes.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {resumes.map((resume: Resume) => (
                       <div
                         key={resume.id}
-                        className="flex items-center justify-between p-6 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                        className="group p-8 border border-gray-100 rounded-2xl hover:shadow-xl hover:border-cyan-200 transition-all duration-300 bg-gradient-to-r from-white to-gray-50/50"
                       >
-                        <div className="flex items-center flex-1">
-                          <div className="flex-shrink-0">
-                            <FileText className="h-10 w-10 text-blue-600" />
-                          </div>
-                          <div className="ml-4 flex-1">
-                            <div className="flex items-center">
-                              <h4 className="text-lg font-medium text-gray-900">
-                                {resume.filename}
-                              </h4>
-                              <Badge
-                                className={`ml-3 ${getStatusColor(
-                                  resume.status
-                                )}`}
-                              >
-                                {resume.status}
-                              </Badge>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center flex-1">
+                            <div className="flex-shrink-0 mr-6">
+                              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <FileText className="h-8 w-8 text-white" />
+                              </div>
                             </div>
-                            <div className="mt-1 flex items-center text-sm text-gray-500">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              Uploaded{" "}
-                              {new Date(resume.created_at).toLocaleDateString()}
-                              {resume.file_size && (
-                                <>
-                                  <span className="mx-2">•</span>
-                                  <FileDown className="h-4 w-4 mr-1" />
-                                  {(resume.file_size / 1024 / 1024).toFixed(
-                                    2
-                                  )}{" "}
-                                  MB
-                                </>
-                              )}
-                            </div>
-                            {resume.confidence_score && (
-                              <div className="mt-2">
+                            <div className="flex-1">
+                              <div className="flex items-center mb-3">
+                                <h4 className="text-lg font-semibold text-gray-900 font-heading">{resume.filename}</h4>
+                                <Badge className={`ml-4 px-3 py-1 border ${getStatusColor(resume.status)}`}>
+                                  {resume.status}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center text-sm text-gray-500 space-x-6">
                                 <div className="flex items-center">
-                                  <span className="text-xs text-gray-500 mr-2">
-                                    Analysis Confidence:
-                                  </span>
-                                  <div className="w-24 bg-gray-200 rounded-full h-2">
+                                  <Calendar className="h-4 w-4 mr-2" />
+                                  Uploaded {new Date(resume.created_at).toLocaleDateString()}
+                                </div>
+                                {resume.file_size && (
+                                  <div className="flex items-center">
+                                    <FileDown className="h-4 w-4 mr-2" />
+                                    {(resume.file_size / 1024 / 1024).toFixed(2)} MB
+                                  </div>
+                                )}
+                              </div>
+                              {resume.confidence_score && (
+                                <div className="mt-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-gray-700">Analysis Confidence</span>
+                                    <span className="text-sm font-semibold text-cyan-600">
+                                      {resume.confidence_score}%
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-3">
                                     <div
-                                      className="bg-blue-600 h-2 rounded-full"
+                                      className="bg-gradient-to-r from-cyan-500 to-purple-600 h-3 rounded-full transition-all duration-500"
                                       style={{
                                         width: `${resume.confidence_score}%`,
                                       }}
                                     ></div>
                                   </div>
-                                  <span className="text-xs text-gray-600 ml-2">
-                                    {resume.confidence_score}%
-                                  </span>
                                 </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            {getStatusIcon(resume.status)}
+                            {resume.status === "completed" && (
+                              <div className="flex space-x-3">
+                                <Link href={`/dashboard/resume/${resume.id}`}>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="hover:bg-cyan-50 hover:border-cyan-300 bg-transparent"
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Analysis
+                                  </Button>
+                                </Link>
+                                <Link href={`/dashboard/resume/${resume.id}/cover-letter`}>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="hover:bg-purple-50 hover:border-purple-300 bg-transparent"
+                                  >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Cover Letter
+                                  </Button>
+                                </Link>
                               </div>
                             )}
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          {getStatusIcon(resume.status)}
-                          {resume.status === "completed" && (
-                            <>
-                              <Link href={`/dashboard/resume/${resume.id}`}>
-                                <Button variant="outline" size="sm">
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Analysis
-                                </Button>
-                              </Link>
-                              <Link
-                                href={`/dashboard/resume/${resume.id}/cover-letter`}
-                              >
-                                <Button variant="outline" size="sm">
-                                  <FileText className="h-4 w-4 mr-2" />
-                                  Cover Letter
-                                </Button>
-                              </Link>
-                            </>
-                          )}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <FileText className="mx-auto h-16 w-16 text-gray-400" />
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">
-                      No resumes yet
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Get started by uploading your first resume for AI
-                      analysis.
-                    </p>
-                    <div className="mt-6">
-                      <Link href="/dashboard/upload">
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                          <FileText className="mr-2 h-4 w-4" />
-                          Upload Resume
-                        </Button>
-                      </Link>
+                  <div className="text-center py-20">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                      <FileText className="h-12 w-12 text-gray-400" />
                     </div>
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading mb-4">No resumes yet</h3>
+                    <p className="text-base text-gray-500 mb-8 max-w-md mx-auto">
+                      Get started by uploading your first resume for AI analysis and unlock professional insights.
+                    </p>
+                    <Link href="/dashboard/upload">
+                      <Button className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white shadow-lg px-8 py-3 text-lg">
+                        <FileText className="mr-2 h-5 w-5" />
+                        Upload Your First Resume
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </CardContent>
@@ -271,5 +253,5 @@ export default async function ResumesPage() {
         </main>
       </div>
     </div>
-  );
+  )
 }

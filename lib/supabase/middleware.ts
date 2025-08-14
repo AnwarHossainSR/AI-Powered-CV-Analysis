@@ -50,7 +50,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Refresh session if expired - required for Server Components
-  await supabase.auth.getSession();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Protected routes - redirect to login if not authenticated
   const isAuthRoute =
@@ -64,17 +66,34 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/features") ||
     request.nextUrl.pathname.startsWith("/about");
 
-  const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/admin");
+  const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
 
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+
+  // Handle protected routes
   if (isProtectedRoute && !isAuthRoute) {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
+    if (!user) {
       const redirectUrl = new URL("/auth/login", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // Handle admin routes with role checking
+  if (isAdminRoute && !isAuthRoute) {
+    if (!user) {
+      const redirectUrl = new URL("/auth/login", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from("admin_users")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.role !== "super_admin") {
+      const redirectUrl = new URL("/dashboard", request.url);
       return NextResponse.redirect(redirectUrl);
     }
   }

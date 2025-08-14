@@ -12,4 +12,3 @@ INSERT INTO public.admin_users (id, role, permissions)
 VALUES ('user_id', 'super_admin', '["all"]'::jsonb)
 ON CONFLICT (id) 
 DO UPDATE SET role = 'super_admin', permissions = '["all"]'::jsonb;
-
