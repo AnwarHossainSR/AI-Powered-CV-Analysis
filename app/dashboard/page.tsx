@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Resume } from "@/lib/types"
 import { AlertCircle, CheckCircle, Clock, FileText, Plus, Upload } from "lucide-react"
 import Link from "next/link"
+import { getUserProfile, getUserResumes } from "@/lib/queries"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -14,16 +15,8 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
-
-  // Get user's resumes
-  const { data: resumes } = await supabase
-    .from("resumes")
-    .select("*")
-    .eq("user_id", user!.id)
-    .order("created_at", { ascending: false })
-    .limit(10)
+  const profile = await getUserProfile(user!.id)
+  const resumes = await getUserResumes(user!.id)
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -181,7 +174,7 @@ export default async function DashboardPage() {
               <CardContent>
                 {resumes && resumes.length > 0 ? (
                   <div className="space-y-4">
-                    {resumes.map((resume: Resume) => (
+                    {resumes.slice(0, 10).map((resume: Resume) => (
                       <div
                         key={resume.id}
                         className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"

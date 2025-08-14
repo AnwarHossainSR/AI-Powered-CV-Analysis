@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/server"
 import { AlertCircle, CheckCircle, Clock, Download, Eye, FileText, Search } from "lucide-react"
+import { getAllResumes } from "@/lib/queries"
 
 export default async function AdminResumesPage() {
   const supabase = await createClient()
@@ -13,16 +14,7 @@ export default async function AdminResumesPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Get all resumes with user info
-  const { data: resumes } = await supabase
-    .from("resumes")
-    .select(
-      `
-      *,
-      profiles(full_name, email, subscription_status)
-    `,
-    )
-    .order("created_at", { ascending: false })
+  const resumes = await getAllResumes()
 
   const getStatusIcon = (status: string) => {
     switch (status) {

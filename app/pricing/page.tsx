@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import { getBillingPlans } from "@/lib/queries"
 
 interface BillingPlan {
   id: string
@@ -22,15 +23,7 @@ interface BillingPlan {
 export default async function PricingPage() {
   const supabase = createClient()
 
-  const { data: plans, error } = await supabase
-    .from("billing_plans")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-
-  if (error) {
-    console.error("Error fetching billing plans:", error)
-  }
+  const plans = await getBillingPlans()
 
   const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat("en-US", {
