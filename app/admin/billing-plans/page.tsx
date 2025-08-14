@@ -55,9 +55,10 @@ export default function BillingPlansPage() {
 
       if (response.ok) {
         setPlans(data.plans || []);
+      } else {
+        toast.error("Failed to fetch billing plans");
       }
     } catch (error) {
-      console.log("error", error);
       toast.error("Failed to fetch billing plans");
     } finally {
       setLoading(false);
