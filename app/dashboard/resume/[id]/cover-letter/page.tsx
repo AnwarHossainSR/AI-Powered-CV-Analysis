@@ -1,55 +1,76 @@
-import DashboardNav from "@/components/dashboard-nav"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { generateCoverLetter } from "@/lib/ai"
-import { createClient } from "@/lib/supabase/server"
-import { ArrowLeft, Download, FileText, RefreshCw, Briefcase } from "lucide-react"
-import Link from "next/link"
-import { notFound } from "next/navigation"
+import DashboardNav from "@/components/dashboard-nav";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { generateCoverLetter } from "@/lib/ai";
+import { createClient } from "@/lib/supabase/server";
+import {
+  ArrowLeft,
+  Briefcase,
+  Download,
+  FileText,
+  RefreshCw,
+} from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
 interface CoverLetterPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
-export default async function CoverLetterPage(props: CoverLetterPageProps) {
-  const supabase = createClient()
-  const { id } = await props.params
+export default async function CoverLetterPage(
+  props: Promise<CoverLetterPageProps>
+) {
+  const supabase = await createClient();
+  const { params } = await props;
 
+  // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user!.id)
+    .single();
 
   // Get resume with parsed data
   const { data: resume } = await supabase
     .from("resumes")
-    .select(`
+    .select(
+      `
       *,
       parsed_data (*)
-    `)
-    .eq("id", id)
+    `
+    )
+    .eq("id", params.id)
     .eq("user_id", user!.id)
-    .single()
+    .single();
 
   if (!resume) {
-    notFound()
+    notFound();
   }
 
   const generateEnhancedCoverLetter = async (
     parsedData: any,
     jobTitle?: string,
     companyName?: string,
-    jobDescription?: string,
+    jobDescription?: string
   ) => {
     try {
-      const prompt = `Generate a professional cover letter based on the following resume data and job information:
+      const prompt: any = `Generate a professional cover letter based on the following resume data and job information:
 
 RESUME DATA:
 ${JSON.stringify(parsedData, null, 2)}
@@ -67,14 +88,14 @@ INSTRUCTIONS:
 5. Structure: Opening paragraph, 2-3 body paragraphs, closing paragraph
 6. Length: 3-4 paragraphs, approximately 250-400 words
 
-Generate only the cover letter content without any additional formatting or explanations.`
+Generate only the cover letter content without any additional formatting or explanations.`;
 
-      return await generateCoverLetter(prompt)
+      return await generateCoverLetter(prompt, jobDescription);
     } catch (error) {
-      console.error("Failed to generate enhanced cover letter:", error)
-      throw error
+      console.error("Failed to generate enhanced cover letter:", error);
+      throw error;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50">
@@ -91,7 +112,9 @@ Generate only the cover letter content without any additional formatting or expl
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Back to Resume Analysis
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900 font-heading">Cover Letter Generator</h1>
+              <h1 className="text-2xl font-bold text-gray-900 font-heading">
+                Cover Letter Generator
+              </h1>
               <p className="mt-1 text-sm text-gray-600">
                 AI-powered cover letter based on your resume: {resume.filename}
               </p>
@@ -104,21 +127,33 @@ Generate only the cover letter content without any additional formatting or expl
                     <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
                     Job Details (Optional)
                   </CardTitle>
-                  <CardDescription>Provide job details to create a more targeted cover letter</CardDescription>
+                  <CardDescription>
+                    Provide job details to create a more targeted cover letter
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="jobTitle">Job Title</Label>
-                      <Input id="jobTitle" placeholder="e.g., Senior Software Engineer" className="mt-1" />
+                      <Input
+                        id="jobTitle"
+                        placeholder="e.g., Senior Software Engineer"
+                        className="mt-1"
+                      />
                     </div>
                     <div>
                       <Label htmlFor="companyName">Company Name</Label>
-                      <Input id="companyName" placeholder="e.g., Tech Corp Inc." className="mt-1" />
+                      <Input
+                        id="companyName"
+                        placeholder="e.g., Tech Corp Inc."
+                        className="mt-1"
+                      />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="jobDescription">Job Description (Optional)</Label>
+                    <Label htmlFor="jobDescription">
+                      Job Description (Optional)
+                    </Label>
                     <Textarea
                       id="jobDescription"
                       placeholder="Paste the job description here for better matching..."
@@ -141,7 +176,9 @@ Generate only the cover letter content without any additional formatting or expl
                         <FileText className="h-5 w-5 mr-2 text-green-600" />
                         Generated Cover Letter
                       </CardTitle>
-                      <CardDescription>Personalized cover letter based on your resume analysis</CardDescription>
+                      <CardDescription>
+                        Personalized cover letter based on your resume analysis
+                      </CardDescription>
                     </div>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">
@@ -171,9 +208,12 @@ Generate only the cover letter content without any additional formatting or expl
                   ) : resume.status !== "completed" ? (
                     <div className="text-center py-12">
                       <FileText className="mx-auto h-16 w-16 text-gray-400" />
-                      <h3 className="mt-4 text-lg font-medium text-gray-900">Resume Analysis Required</h3>
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">
+                        Resume Analysis Required
+                      </h3>
                       <p className="mt-2 text-sm text-gray-500">
-                        Your resume needs to be analyzed before we can generate a cover letter.
+                        Your resume needs to be analyzed before we can generate
+                        a cover letter.
                       </p>
                       <Link href={`/dashboard/resume/${resume.id}`}>
                         <Button className="mt-4">View Resume Analysis</Button>
@@ -182,9 +222,12 @@ Generate only the cover letter content without any additional formatting or expl
                   ) : (
                     <div className="text-center py-12">
                       <FileText className="mx-auto h-16 w-16 text-gray-400" />
-                      <h3 className="mt-4 text-lg font-medium text-gray-900">Ready to Generate</h3>
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">
+                        Ready to Generate
+                      </h3>
                       <p className="mt-2 text-sm text-gray-500">
-                        Fill in the job details above and click generate to create your cover letter.
+                        Fill in the job details above and click generate to
+                        create your cover letter.
                       </p>
                     </div>
                   )}
@@ -194,7 +237,9 @@ Generate only the cover letter content without any additional formatting or expl
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="font-heading text-lg">Customization Tips</CardTitle>
+                    <CardTitle className="font-heading text-lg">
+                      Customization Tips
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="text-sm text-gray-600 space-y-2">
@@ -220,7 +265,9 @@ Generate only the cover letter content without any additional formatting or expl
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="font-heading text-lg">Best Practices</CardTitle>
+                    <CardTitle className="font-heading text-lg">
+                      Best Practices
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="text-sm text-gray-600 space-y-2">
@@ -249,5 +296,5 @@ Generate only the cover letter content without any additional formatting or expl
         </main>
       </div>
     </div>
-  )
+  );
 }
