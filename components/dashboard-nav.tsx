@@ -127,7 +127,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
               {/* Admin Section */}
               {isAdmin && (
                 <div className="pt-6 mt-6 border-t border-slate-700">
-                  <button
+                  <Button
                     onClick={() => setAdminMenuOpen(!adminMenuOpen)}
                     className="group flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-lg text-purple-300 hover:bg-slate-700/50 hover:text-purple-200 transition-all duration-200"
                   >
@@ -138,7 +138,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                         adminMenuOpen ? "rotate-180" : "rotate-0"
                       }`}
                     />
-                  </button>
+                  </Button>
 
                   <div
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -314,7 +314,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                     {/* Admin Section */}
                     {isAdmin && (
                       <div className="pt-4 mt-4 border-t border-slate-700">
-                        <button
+                        <Button
                           onClick={() => setAdminMenuOpen(!adminMenuOpen)}
                           className="group flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-lg text-purple-300 hover:bg-slate-700/50 hover:text-purple-200 transition-all duration-200"
                         >
@@ -325,7 +325,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                               adminMenuOpen ? "rotate-180" : "rotate-0"
                             }`}
                           />
-                        </button>
+                        </Button>
 
                         <div
                           className={`overflow-hidden transition-all duration-300 ease-in-out ${
