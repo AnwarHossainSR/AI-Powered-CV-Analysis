@@ -31,7 +31,7 @@ interface BillingPlan {
   created_at: string;
 }
 
-export default function BillingPlansPage() {
+export function DatabasePlansTab() {
   const [plans, setPlans] = useState<BillingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -55,9 +55,10 @@ export default function BillingPlansPage() {
 
       if (response.ok) {
         setPlans(data.plans || []);
+      } else {
+        toast.error("Failed to fetch billing plans");
       }
     } catch (error) {
-      console.log("error", error);
       toast.error("Failed to fetch billing plans");
     } finally {
       setLoading(false);
@@ -112,7 +113,7 @@ export default function BillingPlansPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -123,11 +124,11 @@ export default function BillingPlansPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-gray-900">
-            Billing Plans
-          </h1>
+          <h2 className="text-xl font-heading font-bold text-gray-900">
+            Database Plans
+          </h2>
           <p className="text-gray-600">
-            Manage subscription plans and credit packages
+            Manage billing plans stored in your database
           </p>
         </div>
         <Link href="/admin/billing-plans/new">

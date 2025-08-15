@@ -128,3 +128,27 @@
     font-family: var(--font-heading);
   }
 }
+
+/* Add this to your existing CSS file after the @layer base section */
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Ensure smooth scrolling */
+  .scrollbar-hide {
+    scroll-behavior: smooth;
+  }
+
+  /* Add backdrop blur support */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+}

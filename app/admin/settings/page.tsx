@@ -1,26 +1,34 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/server"
-import { Database, Key, Mail, Shield } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/server";
+import { Database, Key, Mail, Shield } from "lucide-react";
 
 export default async function AdminSettingsPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get user (middleware ensures user exists and has admin access)
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   return (
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-        <p className="mt-1 text-sm text-gray-600">Configure system settings and integrations.</p>
+        <p className="mt-1 text-sm text-gray-600">
+          Configure system settings and integrations.
+        </p>
       </div>
 
-      <div className="max-w-4xl space-y-6">
+      <div className="space-y-6">
         {/* System Status */}
         <Card>
           <CardHeader>
@@ -55,22 +63,40 @@ export default async function AdminSettingsPage() {
               <Key className="h-5 w-5 mr-2" />
               API Configuration
             </CardTitle>
-            <CardDescription>Manage API keys and external integrations</CardDescription>
+            <CardDescription>
+              Manage API keys and external integrations
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Google Gemini API</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Google Gemini API
+                </label>
                 <div className="flex items-center space-x-2">
-                  <Input type="password" placeholder="••••••••••••••••" disabled />
-                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
+                  <Input
+                    type="password"
+                    placeholder="••••••••••••••••"
+                    disabled
+                  />
+                  <Badge className="bg-green-100 text-green-800">
+                    Connected
+                  </Badge>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Stripe API</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Stripe API
+                </label>
                 <div className="flex items-center space-x-2">
-                  <Input type="password" placeholder="••••••••••••••••" disabled />
-                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
+                  <Input
+                    type="password"
+                    placeholder="••••••••••••••••"
+                    disabled
+                  />
+                  <Badge className="bg-green-100 text-green-800">
+                    Connected
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -84,23 +110,33 @@ export default async function AdminSettingsPage() {
               <Mail className="h-5 w-5 mr-2" />
               Email Settings
             </CardTitle>
-            <CardDescription>Configure email notifications and templates</CardDescription>
+            <CardDescription>
+              Configure email notifications and templates
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">From Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  From Email
+                </label>
                 <Input type="email" placeholder="noreply@cvanalyzer.com" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Support Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Support Email
+                </label>
                 <Input type="email" placeholder="support@cvanalyzer.com" />
               </div>
             </div>
             <div className="flex items-center justify-between pt-4">
               <div>
-                <h4 className="text-sm font-medium text-gray-900">Email Notifications</h4>
-                <p className="text-sm text-gray-600">Send email notifications for important events</p>
+                <h4 className="text-sm font-medium text-gray-900">
+                  Email Notifications
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Send email notifications for important events
+                </p>
               </div>
               <Button variant="outline">Configure</Button>
             </div>
@@ -120,7 +156,9 @@ export default async function AdminSettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{user!.email}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {user!.email}
+                  </p>
                   <p className="text-sm text-gray-600">Super Administrator</p>
                 </div>
                 <Badge>Active</Badge>
@@ -134,9 +172,11 @@ export default async function AdminSettingsPage() {
 
         {/* Save Changes */}
         <div className="flex justify-end">
-          <Button className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            Save Changes
+          </Button>
         </div>
       </div>
     </>
-  )
+  );
 }

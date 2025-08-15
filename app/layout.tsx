@@ -1,8 +1,10 @@
-import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import { Playfair_Display } from "next/font/google"
+import { Inter, Playfair_Display } from "next/font/google"
+import type React from "react"
+import { Suspense } from "react"
 import { Toaster } from "sonner"
+import { AuthProvider } from "@/lib/auth-context"
+import { LoadingScreen } from "@/components/ui/loading-screen"
 import "./globals.css"
 
 const inter = Inter({
@@ -18,9 +20,65 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "CV Analyzer - AI-Powered Resume Analysis",
-  description: "Upload your resume and get AI-powered analysis, structured data extraction, and professional insights.",
-  generator: "v0.dev",
+  title: {
+    default: "CV Analyzer - AI-Powered Resume Analysis",
+    template: "%s | CV Analyzer",
+  },
+  description:
+    "Upload your resume and get AI-powered analysis, structured data extraction, and professional insights. Improve your career prospects with detailed resume feedback.",
+  keywords: ["resume analysis", "CV analyzer", "AI resume", "job search", "career development", "resume feedback"],
+  authors: [{ name: "CV Analyzer Team" }],
+  creator: "CV Analyzer",
+  publisher: "CV Analyzer",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://cv-analyzer.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    title: "CV Analyzer - AI-Powered Resume Analysis",
+    description:
+      "Upload your resume and get AI-powered analysis, structured data extraction, and professional insights.",
+    siteName: "CV Analyzer",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "CV Analyzer - AI-Powered Resume Analysis",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CV Analyzer - AI-Powered Resume Analysis",
+    description:
+      "Upload your resume and get AI-powered analysis, structured data extraction, and professional insights.",
+    images: ["/og-image.png"],
+    creator: "@cvanalyzer",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -29,9 +87,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased scrollbar-hide`}>
       <body>
-        {children}
+        <AuthProvider>
+          <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
+        </AuthProvider>
         <Toaster position="top-right" richColors />
       </body>
     </html>

@@ -2,6 +2,37 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { cache } from "react"
+
+export const getUserDashboardData = cache(async (userId: string) => {
+  const supabase = await createClient()
+
+  const [profileResult, resumesResult] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", userId).single(),
+    supabase.from("resumes").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
+  ])
+
+  return {
+    profile: profileResult.data,
+    resumes: resumesResult.data || [],
+  }
+})
+
+export const getAdminDashboardData = cache(async () => {
+  const supabase = await createClient()
+
+  const [statsResult, usersResult, resumesResult] = await Promise.all([
+    supabase.rpc("get_admin_stats"),
+    supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(5),
+    supabase.from("resumes").select("*, profiles(full_name, email)").order("created_at", { ascending: false }).limit(5),
+  ])
+
+  return {
+    stats: statsResult.data || {},
+    recentUsers: usersResult.data || [],
+    recentResumes: resumesResult.data || [],
+  }
+})
 
 export async function updateUserProfile(userId: string, data: { full_name?: string }) {
   const supabase = await createClient()
