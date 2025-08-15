@@ -36,6 +36,19 @@ export const getUserResumes = cache(async (userId: string) => {
   return data || [];
 });
 
+export const getResume = cache(async (resumeId: string, userId: string) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("resumes")
+    .select("*")
+    .eq("id", resumeId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error) throw error;
+  return data;
+});
+
 export const getResumeWithParsedData = cache(
   async (resumeId: string, userId: string) => {
     const supabase = await createClient();

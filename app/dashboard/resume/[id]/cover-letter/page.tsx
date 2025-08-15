@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { generateCoverLetter } from "@/lib/ai";
-import { getUser, getUserProfile } from "@/lib/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getResume, getUser, getUserProfile } from "@/lib/queries";
 import {
   ArrowLeft,
   Briefcase,
@@ -30,7 +29,6 @@ interface CoverLetterPageProps {
 }
 
 export default async function CoverLetterPage(props: CoverLetterPageProps) {
-  const supabase = createClient();
   const { id } = await props.params;
 
   const user = await getUser();
@@ -39,17 +37,7 @@ export default async function CoverLetterPage(props: CoverLetterPageProps) {
   const profile = await getUserProfile(user!.id);
 
   // Get resume with parsed data
-  const { data: resume } = await supabase
-    .from("resumes")
-    .select(
-      `
-      *,
-      parsed_data (*)
-    `
-    )
-    .eq("id", id)
-    .eq("user_id", user!.id)
-    .single();
+  const resume = await getResume(id, user!.id);
 
   if (!resume) {
     notFound();
@@ -62,7 +50,7 @@ export default async function CoverLetterPage(props: CoverLetterPageProps) {
     jobDescription?: string
   ) => {
     try {
-      const prompt = `Generate a professional cover letter based on the following resume data and job information:
+      const prompt: any = `Generate a professional cover letter based on the following resume data and job information:
 
 RESUME DATA:
 ${JSON.stringify(parsedData, null, 2)}
