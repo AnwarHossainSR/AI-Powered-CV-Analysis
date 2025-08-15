@@ -45,17 +45,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase])
 
   useEffect(() => {
-    refreshUser()
+    let mounted = true
+
+    const initAuth = async () => {
+      if (mounted) {
+        await refreshUser()
+      }
+    }
+
+    initAuth()
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+      if (mounted && (event === "SIGNED_IN" || event === "SIGNED_OUT")) {
         await refreshUser()
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [refreshUser, supabase.auth])
 
   return <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser }}>{children}</AuthContext.Provider>
