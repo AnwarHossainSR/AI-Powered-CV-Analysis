@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
+import { getParseData, getResume, getUser } from "@/lib/queries";
 import type { ParsedData } from "@/lib/types";
 import {
   ArrowLeft,
@@ -14,7 +14,7 @@ import {
   User,
 } from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 interface ResumeDetailsPageProps {
   params: {
@@ -26,36 +26,19 @@ export default async function ResumeDetailsPage(
   props: Promise<ResumeDetailsPageProps>
 ) {
   const { params } = await props;
-  const supabase = await createClient();
 
-  // Get user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
-  if (!user) {
-    redirect("/auth/login");
-  }
+  // Get resume with parsed data
+  const resume = await getResume(params.id, user!.id);
 
-  // Get resume and parsed data
-  const { data: resume, error: resumeError } = await supabase
-    .from("resumes")
-    .select("*")
-    .eq("id", params.id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (resumeError || !resume) {
+  if (!resume) {
     notFound();
   }
 
-  const { data: parsedData } = await supabase
-    .from("parsed_data")
-    .select("*")
-    .eq("resume_id", params.id)
-    .single();
+  const data: ParsedData = await getParseData(resume.id);
 
-  if (!parsedData) {
+  if (!data) {
     return (
       <div className="min-h-screen bg-gray-50">
         <main className="py-10">
@@ -79,8 +62,6 @@ export default async function ResumeDetailsPage(
       </div>
     );
   }
-
-  const data = parsedData as ParsedData;
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -32,11 +32,7 @@ export default async function CoverLetterPage(props: CoverLetterPageProps) {
   const { id } = await props.params;
 
   const user = await getUser();
-
-  // Get user profile
   const profile = await getUserProfile(user!.id);
-
-  // Get resume with parsed data
   const resume = await getResume(id, user!.id);
 
   if (!resume) {

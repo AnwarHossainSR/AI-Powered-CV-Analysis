@@ -123,11 +123,6 @@ export async function getSession() {
   return supabase.auth.getSession();
 }
 
-export async function getUser() {
-  const supabase = await createClient();
-  return supabase.auth.getUser();
-}
-
 // Export configuration check function (not the boolean itself)
 export async function getSupabaseConfig() {
   return {

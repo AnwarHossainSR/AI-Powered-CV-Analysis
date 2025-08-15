@@ -142,3 +142,15 @@ export const getAllTransactions = cache(async () => {
   if (error) throw error;
   return data || [];
 });
+
+export const getParseData = cache(async (resumeId: string) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("parsed_data")
+    .select("*")
+    .eq("resume_id", resumeId)
+    .single();
+
+  if (error) throw error;
+  return data;
+});

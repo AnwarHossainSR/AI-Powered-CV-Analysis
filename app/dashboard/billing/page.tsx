@@ -12,10 +12,10 @@ import {
 import { Progress } from "@/components/ui/progress";
 import {
   getBillingPlans,
+  getUser,
   getUserCreditTransactions,
   getUserProfile,
 } from "@/lib/queries";
-import { createClient } from "@/lib/supabase/server";
 import {
   Activity,
   AlertCircle,
@@ -121,12 +121,7 @@ const formatCurrency = (amount: number) => {
 };
 
 export default async function BillingPage({ searchParams }: BillingPageProps) {
-  const supabase = await createClient();
-
-  // Get user (middleware ensures user exists)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   const profile = await getUserProfile(user!.id);
   const transactions = await getUserCreditTransactions(user!.id);
