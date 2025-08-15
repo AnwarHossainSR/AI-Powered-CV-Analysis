@@ -1,5 +1,4 @@
 import CreditPurchase from "@/components/credit-purchase";
-import DashboardNav from "@/components/dashboard-nav";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -156,8 +155,6 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      <DashboardNav user={user!} credits={profile?.credits || 0} />
-
       <div className="lg:pl-64">
         <main className="py-8">
           <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">

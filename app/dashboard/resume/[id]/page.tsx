@@ -1,4 +1,3 @@
-import DashboardNav from "@/components/dashboard-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,17 +37,6 @@ export default async function ResumeDetailsPage(
     redirect("/auth/login");
   }
 
-  // Get user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    redirect("/auth/login");
-  }
-
   // Get resume and parsed data
   const { data: resume, error: resumeError } = await supabase
     .from("resumes")
@@ -70,7 +58,6 @@ export default async function ResumeDetailsPage(
   if (!parsedData) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <DashboardNav user={user} credits={profile.credits} />
         <div className="lg:pl-64">
           <main className="py-10">
             <div className="px-4 sm:px-6 lg:px-8">
@@ -99,8 +86,6 @@ export default async function ResumeDetailsPage(
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav user={user} credits={profile.credits} />
-
       <div className="lg:pl-64">
         <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">

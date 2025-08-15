@@ -1,37 +1,27 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useAuth } from "@/lib/auth-context"
-import DashboardNav from "@/components/dashboard-nav"
-import { LoadingScreen } from "@/components/ui/loading-screen"
-import { redirect } from "next/navigation"
-import { useEffect } from "react"
+import DashboardNav from "@/components/dashboard-nav";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { useAuth } from "@/lib/auth-context";
+import { getUserProfile } from "@/lib/queries";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
-  const { user, loading, refreshUser } = useAuth()
+  const { user, loading, refreshUser } = useAuth();
+  const profile = await getUserProfile(user!.id);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      redirect("/auth/login")
-    }
-  }, [user, loading])
-
-  if (loading) {
-    return <LoadingScreen />
-  }
-
-  if (!user) {
-    return null // Will redirect
+  if (loading || !user) {
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav />
+      <DashboardNav user={user!} credits={profile?.credits || 0} />
 
       <div className="lg:pl-64">
         <main className="py-10">
@@ -39,5 +29,5 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }

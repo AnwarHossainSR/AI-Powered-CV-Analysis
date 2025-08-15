@@ -1,54 +1,66 @@
-import DashboardNav from "@/components/dashboard-nav"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/server"
-import type { Resume } from "@/lib/types"
-import { AlertCircle, Calendar, CheckCircle, Clock, Eye, FileDown, FileText, BarChart3, Sparkles } from "lucide-react"
-import Link from "next/link"
-import { getUserProfile, getUserResumes } from "@/lib/queries"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { getUserResumes } from "@/lib/queries";
+import { createClient } from "@/lib/supabase/server";
+import type { Resume } from "@/lib/types";
+import {
+  AlertCircle,
+  BarChart3,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Eye,
+  FileDown,
+  FileText,
+  Sparkles,
+} from "lucide-react";
+import Link from "next/link";
 
 export default async function ResumesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get user (middleware ensures user exists)
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  const profile = await getUserProfile(user!.id)
-  const resumes = await getUserResumes(user!.id)
+  const resumes = await getUserResumes(user!.id);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />
+        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
       case "processing":
-        return <Clock className="h-5 w-5 text-amber-500" />
+        return <Clock className="h-5 w-5 text-amber-500" />;
       case "failed":
-        return <AlertCircle className="h-5 w-5 text-red-500" />
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <Clock className="h-5 w-5 text-gray-500" />
+        return <Clock className="h-5 w-5 text-gray-500" />;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+        return "bg-emerald-100 text-emerald-800 border-emerald-200";
       case "processing":
-        return "bg-amber-100 text-amber-800 border-amber-200"
+        return "bg-amber-100 text-amber-800 border-amber-200";
       case "failed":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50/30">
-      <DashboardNav user={user!} credits={profile?.credits || 0} />
-
       <div className="lg:pl-64">
         <main className="py-12">
           <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -59,8 +71,12 @@ export default async function ResumesPage() {
                   <BarChart3 className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 font-heading">Your Resume Evolution</h1>
-                  <p className="text-lg text-gray-600 mt-2">Track your progress and improvements over time</p>
+                  <h1 className="text-3xl font-bold text-gray-900 font-heading">
+                    Your Resume Evolution
+                  </h1>
+                  <p className="text-lg text-gray-600 mt-2">
+                    Track your progress and improvements over time
+                  </p>
                 </div>
               </div>
             </div>
@@ -72,8 +88,12 @@ export default async function ResumesPage() {
                 <CardContent className="p-8 relative">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-cyan-700 uppercase tracking-wide">Total Resumes</p>
-                      <p className="text-4xl font-bold text-cyan-900 mt-2">{resumes?.length || 0}</p>
+                      <p className="text-sm font-medium text-cyan-700 uppercase tracking-wide">
+                        Total Resumes
+                      </p>
+                      <p className="text-4xl font-bold text-cyan-900 mt-2">
+                        {resumes?.length || 0}
+                      </p>
                     </div>
                     <div className="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center">
                       <FileText className="w-8 h-8 text-white" />
@@ -87,9 +107,13 @@ export default async function ResumesPage() {
                 <CardContent className="p-8 relative">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-emerald-700 uppercase tracking-wide">Analyzed</p>
+                      <p className="text-sm font-medium text-emerald-700 uppercase tracking-wide">
+                        Analyzed
+                      </p>
                       <p className="text-4xl font-bold text-emerald-900 mt-2">
-                        {resumes?.filter((r: Resume) => r.status === "completed").length || 0}
+                        {resumes?.filter(
+                          (r: Resume) => r.status === "completed"
+                        ).length || 0}
                       </p>
                     </div>
                     <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center">
@@ -104,10 +128,14 @@ export default async function ResumesPage() {
                 <CardContent className="p-8 relative">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-amber-700 uppercase tracking-wide">Processing</p>
+                      <p className="text-sm font-medium text-amber-700 uppercase tracking-wide">
+                        Processing
+                      </p>
                       <p className="text-4xl font-bold text-amber-900 mt-2">
-                        {resumes?.filter((r: Resume) => r.status === "processing" || r.status === "pending").length ||
-                          0}
+                        {resumes?.filter(
+                          (r: Resume) =>
+                            r.status === "processing" || r.status === "pending"
+                        ).length || 0}
                       </p>
                     </div>
                     <div className="w-16 h-16 bg-amber-600 rounded-2xl flex items-center justify-center">
@@ -156,27 +184,41 @@ export default async function ResumesPage() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center mb-3">
-                                <h4 className="text-lg font-semibold text-gray-900 font-heading">{resume.filename}</h4>
-                                <Badge className={`ml-4 px-3 py-1 border ${getStatusColor(resume.status)}`}>
+                                <h4 className="text-lg font-semibold text-gray-900 font-heading">
+                                  {resume.filename}
+                                </h4>
+                                <Badge
+                                  className={`ml-4 px-3 py-1 border ${getStatusColor(
+                                    resume.status
+                                  )}`}
+                                >
                                   {resume.status}
                                 </Badge>
                               </div>
                               <div className="flex items-center text-sm text-gray-500 space-x-6">
                                 <div className="flex items-center">
                                   <Calendar className="h-4 w-4 mr-2" />
-                                  Uploaded {new Date(resume.created_at).toLocaleDateString()}
+                                  Uploaded{" "}
+                                  {new Date(
+                                    resume.created_at
+                                  ).toLocaleDateString()}
                                 </div>
                                 {resume.file_size && (
                                   <div className="flex items-center">
                                     <FileDown className="h-4 w-4 mr-2" />
-                                    {(resume.file_size / 1024 / 1024).toFixed(2)} MB
+                                    {(resume.file_size / 1024 / 1024).toFixed(
+                                      2
+                                    )}{" "}
+                                    MB
                                   </div>
                                 )}
                               </div>
                               {resume.confidence_score && (
                                 <div className="mt-4">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-gray-700">Analysis Confidence</span>
+                                    <span className="text-sm font-medium text-gray-700">
+                                      Analysis Confidence
+                                    </span>
                                     <span className="text-sm font-semibold text-cyan-600">
                                       {resume.confidence_score}%
                                     </span>
@@ -207,7 +249,9 @@ export default async function ResumesPage() {
                                     View Analysis
                                   </Button>
                                 </Link>
-                                <Link href={`/dashboard/resume/${resume.id}/cover-letter`}>
+                                <Link
+                                  href={`/dashboard/resume/${resume.id}/cover-letter`}
+                                >
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -229,9 +273,12 @@ export default async function ResumesPage() {
                     <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-8">
                       <FileText className="h-12 w-12 text-gray-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 font-heading mb-4">No resumes yet</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading mb-4">
+                      No resumes yet
+                    </h3>
                     <p className="text-base text-gray-500 mb-8 max-w-md mx-auto">
-                      Get started by uploading your first resume for AI analysis and unlock professional insights.
+                      Get started by uploading your first resume for AI analysis
+                      and unlock professional insights.
                     </p>
                     <Link href="/dashboard/upload">
                       <Button className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white shadow-lg px-8 py-3 text-lg">
@@ -247,5 +294,5 @@ export default async function ResumesPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

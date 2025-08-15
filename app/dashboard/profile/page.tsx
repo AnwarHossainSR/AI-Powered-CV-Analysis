@@ -1,26 +1,41 @@
-import DashboardNav from "@/components/dashboard-nav"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/server"
-import { User, Settings, Shield, Download, Trash2, Key, BarChart3 } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/server";
+import {
+  BarChart3,
+  Download,
+  Key,
+  Settings,
+  Shield,
+  Trash2,
+  User,
+} from "lucide-react";
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get user (middleware ensures user exists)
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user!.id)
+    .single();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-      <DashboardNav user={user!} credits={profile?.credits || 0} />
-
       <div className="lg:pl-64">
         <main className="py-8">
           <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -31,8 +46,12 @@ export default async function ProfilePage() {
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 font-heading">Your Profile</h1>
-                  <p className="text-base text-gray-600 mt-1">Manage your personal information and settings</p>
+                  <h1 className="text-2xl font-bold text-gray-900 font-heading">
+                    Your Profile
+                  </h1>
+                  <p className="text-base text-gray-600 mt-1">
+                    Manage your personal information and settings
+                  </p>
                 </div>
               </div>
             </div>
@@ -53,7 +72,10 @@ export default async function ProfilePage() {
                 <CardContent className="space-y-4 relative">
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <div className="space-y-2">
-                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="fullName"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Full Name
                       </label>
                       <Input
@@ -65,7 +87,10 @@ export default async function ProfilePage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Email Address
                       </label>
                       <Input
@@ -82,10 +107,16 @@ export default async function ProfilePage() {
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div className="flex items-center space-x-4">
                       <div>
-                        <h4 className="text-base font-medium text-gray-900">Subscription Status</h4>
+                        <h4 className="text-base font-medium text-gray-900">
+                          Subscription Status
+                        </h4>
                         <div className="mt-2">
                           <Badge
-                            variant={profile?.subscription_status === "free" ? "secondary" : "default"}
+                            variant={
+                              profile?.subscription_status === "free"
+                                ? "secondary"
+                                : "default"
+                            }
                             className={`text-sm px-3 py-1 ${
                               profile?.subscription_status === "free"
                                 ? "bg-gray-100 text-gray-800"
@@ -121,16 +152,28 @@ export default async function ProfilePage() {
                 <CardContent className="relative">
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <div className="text-center p-6 bg-white/80 rounded-xl shadow-md">
-                      <div className="text-2xl font-bold text-cyan-600 mb-1">{profile?.credits || 0}</div>
-                      <div className="text-sm font-medium text-gray-700">Credits Remaining</div>
+                      <div className="text-2xl font-bold text-cyan-600 mb-1">
+                        {profile?.credits || 0}
+                      </div>
+                      <div className="text-sm font-medium text-gray-700">
+                        Credits Remaining
+                      </div>
                     </div>
                     <div className="text-center p-6 bg-white/80 rounded-xl shadow-md">
-                      <div className="text-2xl font-bold text-emerald-600 mb-1">0</div>
-                      <div className="text-sm font-medium text-gray-700">This Month</div>
+                      <div className="text-2xl font-bold text-emerald-600 mb-1">
+                        0
+                      </div>
+                      <div className="text-sm font-medium text-gray-700">
+                        This Month
+                      </div>
                     </div>
                     <div className="text-center p-6 bg-white/80 rounded-xl shadow-md">
-                      <div className="text-2xl font-bold text-purple-600 mb-1">0</div>
-                      <div className="text-sm font-medium text-gray-700">Total Used</div>
+                      <div className="text-2xl font-bold text-purple-600 mb-1">
+                        0
+                      </div>
+                      <div className="text-sm font-medium text-gray-700">
+                        Total Used
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -154,8 +197,12 @@ export default async function ProfilePage() {
                         <Key className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h4 className="text-base font-medium text-gray-900">Change Password</h4>
-                        <p className="text-sm text-gray-600">Update your account password for better security</p>
+                        <h4 className="text-base font-medium text-gray-900">
+                          Change Password
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Update your account password for better security
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -172,8 +219,12 @@ export default async function ProfilePage() {
                         <Download className="w-5 h-5 text-emerald-600" />
                       </div>
                       <div>
-                        <h4 className="text-base font-medium text-gray-900">Export Data</h4>
-                        <p className="text-sm text-gray-600">Download all your resume analysis data and history</p>
+                        <h4 className="text-base font-medium text-gray-900">
+                          Export Data
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Download all your resume analysis data and history
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -190,8 +241,13 @@ export default async function ProfilePage() {
                         <Trash2 className="w-5 h-5 text-red-600" />
                       </div>
                       <div>
-                        <h4 className="text-base font-medium text-red-900">Delete Account</h4>
-                        <p className="text-sm text-red-600">Permanently delete your account and all associated data</p>
+                        <h4 className="text-base font-medium text-red-900">
+                          Delete Account
+                        </h4>
+                        <p className="text-sm text-red-600">
+                          Permanently delete your account and all associated
+                          data
+                        </p>
                       </div>
                     </div>
                     <Button variant="destructive" className="px-4 py-2">
@@ -205,5 +261,5 @@ export default async function ProfilePage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
