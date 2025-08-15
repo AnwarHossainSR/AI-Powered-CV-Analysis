@@ -7,7 +7,7 @@ import { CreditCard, Package, TrendingUp, Users } from "lucide-react";
 export default function BillingManagementPage() {
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto p-6 lg:p-8 space-y-8">
+      <div className="mx-auto p-6 lg:p-8 space-y-8">
         {/* Header Section */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">

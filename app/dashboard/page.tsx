@@ -1,32 +1,23 @@
-import { Suspense } from "react"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { getUserDashboardData } from "@/lib/server-actions"
-import { DashboardContent } from "@/components/dashboard-content"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import type { Metadata } from "next"
+import { DashboardContent } from "@/components/dashboard-content";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { getUser } from "@/lib/queries";
+import { getUserDashboardData } from "@/lib/server-actions";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Manage your resumes and view analysis results",
-}
+};
 
-export const revalidate = 60
+export const revalidate = 60;
 
 async function DashboardData() {
-  const supabase = await createClient()
+  const user = await getUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { profile, resumes } = await getUserDashboardData(user.id);
 
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  const { profile, resumes } = await getUserDashboardData(user.id)
-
-  return <DashboardContent profile={profile} resumes={resumes} user={user} />
+  return <DashboardContent profile={profile} resumes={resumes} user={user} />;
 }
 
 export default function DashboardPage() {
@@ -40,5 +31,5 @@ export default function DashboardPage() {
     >
       <DashboardData />
     </Suspense>
-  )
+  );
 }
