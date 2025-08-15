@@ -1,45 +1,27 @@
-"use client"
+import DashboardNav from "@/components/dashboard-nav";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { getUser, getUserProfile } from "@/lib/queries";
 
-import type React from "react"
-import { useEffect, useState } from "react"
-import DashboardNav from "@/components/dashboard-nav"
-import { LoadingScreen } from "@/components/ui/loading-screen"
-import { useAuth } from "@/lib/auth-context"
-import { getUserProfile } from "@/lib/queries"
+import type React from "react";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
-  const { user, loading } = useAuth()
-  const [profile, setProfile] = useState<any>(null)
-  const [profileLoading, setProfileLoading] = useState(true)
+  const user = await getUser();
+  if (!user) {
+    return <LoadingScreen />;
+  }
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return
-
-      try {
-        const profileData = await getUserProfile(user.id)
-        setProfile(profileData)
-      } catch (error) {
-        console.error("[v0] Profile loading error:", error)
-      } finally {
-        setProfileLoading(false)
-      }
-    }
-
-    loadProfile()
-  }, [user])
-
-  if (loading || profileLoading || !user) {
-    return <LoadingScreen />
+  const profile = await getUserProfile(user.id);
+  if (!profile) {
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav user={user} credits={profile?.credits || 0} />
+      <DashboardNav user={user} credits={profile.credits || 0} />
 
       <div className="lg:pl-64">
         <main className="py-10">
@@ -47,5 +29,5 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }
