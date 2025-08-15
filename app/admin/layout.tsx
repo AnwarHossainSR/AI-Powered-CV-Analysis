@@ -1,5 +1,5 @@
 import DashboardNav from "@/components/dashboard-nav";
-import { createClient } from "@/lib/supabase/server";
+import { getUser, getUserProfile } from "@/lib/queries";
 import type React from "react";
 
 export default async function AdminLayout({
@@ -7,19 +7,9 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
+  const user = await getUser();
 
-  // Get user (middleware ensures user exists and has admin access)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Get user profile for credits display
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
+  const profile = await getUserProfile(user!.id);
 
   return (
     <div className="min-h-screen bg-gray-50">

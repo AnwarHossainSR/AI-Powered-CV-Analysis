@@ -1,18 +1,23 @@
-"use client"
+"use client";
 
-import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, FileText } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { signIn } from "@/lib/actions"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { signIn } from "@/lib/actions";
+import { FileText, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 
 function SubmitButton() {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
 
   return (
     <Button
@@ -29,19 +34,19 @@ function SubmitButton() {
         "Sign In"
       )}
     </Button>
-  )
+  );
 }
 
 export default function LoginForm() {
-  const router = useRouter()
-  const [state, formAction] = useActionState(signIn, null)
+  const router = useRouter();
+  const [state, formAction] = useActionState(signIn, null);
 
   // Handle successful login by redirecting
   useEffect(() => {
     if (state?.success) {
-      router.push("/dashboard")
+      router.push("/dashboard");
     }
-  }, [state, router])
+  }, [state, router]);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -51,7 +56,9 @@ export default function LoginForm() {
         </div>
         <div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription className="text-gray-600">Sign in to your CV Analyzer account</CardDescription>
+          <CardDescription className="text-gray-600">
+            Sign in to your CV Analyzer account
+          </CardDescription>
         </div>
       </CardHeader>
 
@@ -65,16 +72,35 @@ export default function LoginForm() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
-              <Input id="email" name="email" type="email" placeholder="you@example.com" required className="h-12" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                className="h-12"
+              />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
-              <Input id="password" name="password" type="password" required className="h-12" />
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="h-12"
+              />
             </div>
           </div>
 
@@ -82,12 +108,15 @@ export default function LoginForm() {
 
           <div className="text-center text-gray-600">
             Don't have an account?{" "}
-            <Link href="/auth/sign-up" className="text-blue-600 hover:underline font-medium">
+            <Link
+              href="/auth/sign-up"
+              className="text-blue-600 hover:underline font-medium"
+            >
               Sign up
             </Link>
           </div>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

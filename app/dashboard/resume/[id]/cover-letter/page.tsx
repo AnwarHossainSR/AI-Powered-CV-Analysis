@@ -1,4 +1,3 @@
-import DashboardNav from "@/components/dashboard-nav";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { generateCoverLetter } from "@/lib/ai";
-import { getResume, getUser, getUserProfile } from "@/lib/queries";
+import { getResume, getUser } from "@/lib/queries";
 import {
   ArrowLeft,
   Briefcase,
@@ -32,7 +31,6 @@ export default async function CoverLetterPage(props: CoverLetterPageProps) {
   const { id } = await props.params;
 
   const user = await getUser();
-  const profile = await getUserProfile(user!.id);
   const resume = await getResume(id, user!.id);
 
   if (!resume) {
@@ -75,8 +73,6 @@ Generate only the cover letter content without any additional formatting or expl
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50">
-      <DashboardNav user={user!} credits={profile?.credits || 0} />
-
       <main className="py-10">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
