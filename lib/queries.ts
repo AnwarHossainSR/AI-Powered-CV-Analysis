@@ -5,8 +5,6 @@ import { cache } from "react";
 export const getUser = cache(async () => {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
-  console.log("data", data);
-
   if (error) throw error;
   return data?.user || null;
 });
@@ -141,4 +139,16 @@ export const getAllTransactions = cache(async () => {
 
   if (error) throw error;
   return data || [];
+});
+
+export const getParseData = cache(async (resumeId: string) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("parsed_data")
+    .select("*")
+    .eq("resume_id", resumeId)
+    .single();
+
+  if (error) throw error;
+  return data;
 });

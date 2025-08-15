@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/server";
+import { getUser, getUserProfile } from "@/lib/queries";
 import {
   BarChart3,
   Download,
@@ -20,19 +20,8 @@ import {
 } from "lucide-react";
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-
-  // Get user (middleware ensures user exists)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Get user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
+  const user = await getUser();
+  const profile = await getUserProfile(user!.id);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">

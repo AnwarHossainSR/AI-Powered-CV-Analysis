@@ -8,16 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/queries";
 import { Database, Key, Mail, Shield } from "lucide-react";
 
 export default async function AdminSettingsPage() {
-  const supabase = await createClient();
-
-  // Get user (middleware ensures user exists and has admin access)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   return (
     <>

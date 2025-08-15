@@ -1,26 +1,26 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/server"
-import { MoreHorizontal, Search, Users } from "lucide-react"
-import { getAllUsers } from "@/lib/queries"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { getAllUsers } from "@/lib/queries";
+import { MoreHorizontal, Search, Users } from "lucide-react";
 
 export default async function AdminUsersPage() {
-  const supabase = await createClient()
-
-  // Get user (middleware ensures user exists and has admin access)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const users = await getAllUsers()
+  const users = await getAllUsers();
 
   return (
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="mt-1 text-sm text-gray-600">Manage user accounts and monitor activity.</p>
+        <p className="mt-1 text-sm text-gray-600">
+          Manage user accounts and monitor activity.
+        </p>
       </div>
 
       <Card>
@@ -31,7 +31,9 @@ export default async function AdminUsersPage() {
                 <Users className="h-5 w-5 mr-2" />
                 All Users ({users?.length || 0})
               </CardTitle>
-              <CardDescription>Complete list of registered users</CardDescription>
+              <CardDescription>
+                Complete list of registered users
+              </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
               <div className="relative">
@@ -72,19 +74,29 @@ export default async function AdminUsersPage() {
                     <tr key={profile.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{profile.full_name || "No name"}</div>
-                          <div className="text-sm text-gray-500">{profile.email}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {profile.full_name || "No name"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {profile.email}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge
-                          variant={profile.subscription_status === "free" ? "secondary" : "default"}
+                          variant={
+                            profile.subscription_status === "free"
+                              ? "secondary"
+                              : "default"
+                          }
                           className="capitalize"
                         >
                           {profile.subscription_status}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{profile.credits}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {profile.credits}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {profile.resumes?.[0]?.count || 0}
                       </td>
@@ -104,12 +116,16 @@ export default async function AdminUsersPage() {
           ) : (
             <div className="text-center py-8">
               <Users className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
-              <p className="mt-1 text-sm text-gray-500">No users have registered yet.</p>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No users found
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                No users have registered yet.
+              </p>
             </div>
           )}
         </CardContent>
       </Card>
     </>
-  )
+  );
 }

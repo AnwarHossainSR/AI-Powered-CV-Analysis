@@ -7,8 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getUserResumes } from "@/lib/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getUser, getUserResumes } from "@/lib/queries";
 import type { Resume } from "@/lib/types";
 import {
   AlertCircle,
@@ -24,13 +23,7 @@ import {
 import Link from "next/link";
 
 export default async function ResumesPage() {
-  const supabase = await createClient();
-
-  // Get user (middleware ensures user exists)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getUser();
   const resumes = await getUserResumes(user!.id);
 
   const getStatusIcon = (status: string) => {

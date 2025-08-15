@@ -6,23 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
+import { getUser, getUserProfile } from "@/lib/queries";
 import { Clock, Shield, Upload, Zap } from "lucide-react";
 
 export default async function UploadPage() {
-  const supabase = await createClient();
+  const user = await getUser();
 
-  // Get user (middleware ensures user exists)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Get user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
+  const profile = await getUserProfile(user!.id);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-cyan-50/30">
