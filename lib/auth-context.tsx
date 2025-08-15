@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
 
@@ -21,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const supabase = createClient()
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const {
         data: { user },
@@ -43,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
 
   useEffect(() => {
     refreshUser()
@@ -57,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [refreshUser, supabase.auth])
 
   return <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser }}>{children}</AuthContext.Provider>
 }
