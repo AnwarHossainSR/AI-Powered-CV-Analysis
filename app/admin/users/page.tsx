@@ -43,7 +43,8 @@ export default function AdminUsersPage() {
       const response = await fetch("/api/admin/users")
       if (response.ok) {
         const data = await response.json()
-        setUsers(data)
+        console.log("[v0] API response:", data) // Debug log to see the actual response structure
+        setUsers(data.users || data) // Handle both structured and direct array responses
       } else {
         toast.error("Failed to fetch users")
       }
