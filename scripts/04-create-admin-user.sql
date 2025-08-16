@@ -9,6 +9,9 @@
 
 -- Uncomment and modify the line below with your actual user ID:
 INSERT INTO public.admin_users (id, role, permissions) 
-VALUES ('user_id', 'super_admin', '["all"]'::jsonb)
+VALUES ('2a4da24c-2296-4eb4-9f22-4e392956cf6f', 'super_admin', '["all"]'::jsonb)
 ON CONFLICT (id) 
 DO UPDATE SET role = 'super_admin', permissions = '["all"]'::jsonb;
+
+-- update user_profile table credits to 1000
+UPDATE public.profiles SET credits = 1000 WHERE id = '2a4da24c-2296-4eb4-9f22-4e392956cf6f';

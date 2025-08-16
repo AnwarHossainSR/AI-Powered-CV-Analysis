@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,67 +11,147 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { generateCoverLetter } from "@/lib/ai";
-import { getResume, getUser } from "@/lib/queries";
 import {
   ArrowLeft,
   Briefcase,
   Download,
   FileText,
+  Loader2,
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-interface CoverLetterPageProps {
-  params: {
-    id: string;
-  };
+interface Resume {
+  id: string;
+  filename: string;
+  status: string;
+  parsed_data: any;
 }
 
-export default async function CoverLetterPage(props: CoverLetterPageProps) {
-  const { id } = await props.params;
+export default function CoverLetterPage() {
+  const params = useParams();
+  const resumeId = params.id as string;
 
-  const user = await getUser();
-  const resume = await getResume(id, user!.id);
+  const [resume, setResume] = useState<Resume | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [wordCount, setWordCount] = useState(0);
+  const [characterCount, setCharacterCount] = useState(0);
 
-  if (!resume) {
-    notFound();
-  }
+  // Form state
+  const [jobTitle, setJobTitle] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
-  const generateEnhancedCoverLetter = async (
-    parsedData: any,
-    jobTitle?: string,
-    companyName?: string,
-    jobDescription?: string
-  ) => {
+  useEffect(() => {
+    const fetchResume = async () => {
+      try {
+        const response = await fetch(`/api/resumes/${resumeId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setResume(data);
+        } else {
+          toast.error("Failed to load resume");
+        }
+      } catch (error) {
+        console.error("Error fetching resume:", error);
+        toast.error("Failed to load resume");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (resumeId) {
+      fetchResume();
+    }
+  }, [resumeId]);
+
+  useEffect(() => {
+    if (coverLetter) {
+      setWordCount(
+        coverLetter.split(/\s+/).filter((word) => word.length > 0).length
+      );
+      setCharacterCount(coverLetter.length);
+    }
+  }, [coverLetter]);
+
+  const handleGenerateCoverLetter = async () => {
+    if (!resume) return;
+
+    setGenerating(true);
     try {
-      const prompt: any = `Generate a professional cover letter based on the following resume data and job information:
+      const response = await fetch("/api/cover-letter/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resumeId: resume.id,
+          jobTitle,
+          companyName,
+          jobDescription,
+        }),
+      });
 
-RESUME DATA:
-${JSON.stringify(parsedData, null, 2)}
-
-JOB DETAILS:
-- Job Title: ${jobTitle || "Not specified"}
-- Company Name: ${companyName || "Not specified"}
-- Job Description: ${jobDescription || "Not provided"}
-
-INSTRUCTIONS:
-1. Create a compelling cover letter that highlights relevant experience from the resume
-2. Match skills and experience to the job requirements
-3. Show enthusiasm for the specific role and company
-4. Keep it professional but personable
-5. Structure: Opening paragraph, 2-3 body paragraphs, closing paragraph
-6. Length: 3-4 paragraphs, approximately 250-400 words
-
-Generate only the cover letter content without any additional formatting or explanations.`;
-
-      return await generateCoverLetter(prompt);
+      if (response.ok) {
+        const data = await response.json();
+        setCoverLetter(data.coverLetter);
+        toast.success("Cover letter generated successfully!");
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to generate cover letter");
+      }
     } catch (error) {
-      console.error("Failed to generate enhanced cover letter:", error);
-      throw error;
+      console.error("Error generating cover letter:", error);
+      toast.error("Failed to generate cover letter");
+    } finally {
+      setGenerating(false);
     }
   };
+
+  const handleDownload = () => {
+    if (!coverLetter) return;
+
+    const element = document.createElement("a");
+    const file = new Blob([coverLetter], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `cover-letter-${companyName || "general"}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success("Cover letter downloaded!");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading resume...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!resume) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="mx-auto h-16 w-16 text-gray-400" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            Resume not found
+          </h3>
+          <Link href="/dashboard/resumes">
+            <Button className="mt-4">Back to Resumes</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50">
@@ -108,6 +190,8 @@ Generate only the cover letter content without any additional formatting or expl
                     <Label htmlFor="jobTitle">Job Title</Label>
                     <Input
                       id="jobTitle"
+                      value={jobTitle}
+                      onChange={(e) => setJobTitle(e.target.value)}
                       placeholder="e.g., Senior Software Engineer"
                       className="mt-1"
                     />
@@ -116,6 +200,8 @@ Generate only the cover letter content without any additional formatting or expl
                     <Label htmlFor="companyName">Company Name</Label>
                     <Input
                       id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="e.g., Tech Corp Inc."
                       className="mt-1"
                     />
@@ -127,13 +213,25 @@ Generate only the cover letter content without any additional formatting or expl
                   </Label>
                   <Textarea
                     id="jobDescription"
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
                     placeholder="Paste the job description here for better matching..."
                     className="mt-1 min-h-[100px]"
                   />
                 </div>
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Generate Targeted Cover Letter
+                <Button
+                  onClick={handleGenerateCoverLetter}
+                  disabled={generating || resume.status !== "completed"}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  {generating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  {generating
+                    ? "Generating..."
+                    : "Generate Targeted Cover Letter"}
                 </Button>
               </CardContent>
             </Card>
@@ -152,31 +250,33 @@ Generate only the cover letter content without any additional formatting or expl
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <RefreshCw className="h-4 w-4 mr-2" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateCoverLetter}
+                      disabled={generating || resume.status !== "completed"}
+                    >
+                      {generating ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                      )}
                       Regenerate
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownload}
+                      disabled={!coverLetter}
+                    >
                       <Download className="h-4 w-4 mr-2" />
-                      Download PDF
+                      Download
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                {resume.parsed_data && resume.status === "completed" ? (
-                  <div className="space-y-4">
-                    <Textarea
-                      defaultValue="Your personalized cover letter will appear here after generation..."
-                      className="min-h-[500px] font-mono text-sm leading-relaxed"
-                      placeholder="Click 'Generate Targeted Cover Letter' above to create your personalized cover letter..."
-                    />
-                    <div className="flex justify-between items-center text-sm text-gray-500">
-                      <span>Word count: 0</span>
-                      <span>Character count: 0</span>
-                    </div>
-                  </div>
-                ) : resume.status !== "completed" ? (
+                {resume.status !== "completed" ? (
                   <div className="text-center py-12">
                     <FileText className="mx-auto h-16 w-16 text-gray-400" />
                     <h3 className="mt-4 text-lg font-medium text-gray-900">
@@ -191,20 +291,26 @@ Generate only the cover letter content without any additional formatting or expl
                     </Link>
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <FileText className="mx-auto h-16 w-16 text-gray-400" />
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">
-                      Ready to Generate
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Fill in the job details above and click generate to create
-                      your cover letter.
-                    </p>
+                  <div className="space-y-4">
+                    <Textarea
+                      value={
+                        coverLetter ||
+                        "Click 'Generate Targeted Cover Letter' above to create your personalized cover letter..."
+                      }
+                      onChange={(e) => setCoverLetter(e.target.value)}
+                      className="min-h-[500px] font-mono text-sm leading-relaxed"
+                      placeholder="Your personalized cover letter will appear here after generation..."
+                    />
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>Word count: {wordCount}</span>
+                      <span>Character count: {characterCount}</span>
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
 
+            {/* Customization Tips */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -234,6 +340,7 @@ Generate only the cover letter content without any additional formatting or expl
                 </CardContent>
               </Card>
 
+              {/* Best Practices */}
               <Card>
                 <CardHeader>
                   <CardTitle className="font-heading text-lg">
