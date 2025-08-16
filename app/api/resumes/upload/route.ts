@@ -1,4 +1,3 @@
-import { checkAdminAccess } from "@/lib/admin";
 import { parseResumeWithAI } from "@/lib/ai";
 import { getUser, getUserProfile } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -12,7 +11,6 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
     const profile = await getUserProfile(user.id);
-    const isAdimin = await checkAdminAccess(user.id);
 
     if (!profile || profile.credits < 1) {
       return NextResponse.json(
