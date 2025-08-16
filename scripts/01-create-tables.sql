@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     email TEXT UNIQUE NOT NULL,
     full_name TEXT,
     avatar_url TEXT,
-    credits INTEGER DEFAULT 10,
+    credits INTEGER DEFAULT 5,
     is_blocked BOOLEAN DEFAULT FALSE,
     subscription_status TEXT DEFAULT 'free' CHECK (subscription_status IN ('free', 'basic', 'premium')),
     subscription_id TEXT,

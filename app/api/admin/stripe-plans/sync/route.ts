@@ -1,3 +1,4 @@
+import { updateLastSyncedAt } from "@/lib/queries";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
@@ -324,36 +325,6 @@ export async function POST(request: NextRequest) {
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
-    );
-  }
-}
-
-// Helper function to update the last_synced_at setting
-async function updateLastSyncedAt(supabase: any) {
-  try {
-    const currentTimestamp = new Date().toISOString();
-
-    const { error } = await supabase
-      .from("settings")
-      .update({
-        value: currentTimestamp,
-        updated_at: currentTimestamp,
-      })
-      .eq("category", "sync")
-      .eq("key", "last_synced_at");
-
-    if (error) {
-      console.error("Failed to update last_synced_at setting:", error);
-    } else {
-      console.log(
-        "Successfully updated last_synced_at setting to:",
-        currentTimestamp
-      );
-    }
-  } catch (settingError) {
-    console.error(
-      "Unexpected error updating last_synced_at setting:",
-      settingError
     );
   }
 }

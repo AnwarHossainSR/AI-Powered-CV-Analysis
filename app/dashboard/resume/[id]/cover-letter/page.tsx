@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ArrowLeft,
   Briefcase,
   Download,
   FileText,
@@ -158,13 +158,7 @@ export default function CoverLetterPage() {
       <main className="py-10">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <Link
-              href={`/dashboard/resume/${resume.id}`}
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 mb-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Resume Analysis
-            </Link>
+            <BackButton />
             <h1 className="text-2xl font-bold text-gray-900 font-heading">
               Cover Letter Generator
             </h1>
