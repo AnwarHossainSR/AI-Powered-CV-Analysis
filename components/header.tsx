@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button"
 import { FileText } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 
 export default function Header() {
   const pathname = usePathname()
+  const { user, loading } = useAuth()
 
   return (
     <header className="bg-white shadow-sm">
@@ -43,14 +45,26 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            <Link href="/auth/login">
-              <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/auth/sign-up">
-              <Button className="bg-black hover:bg-gray-800 text-white">Get Started</Button>
-            </Link>
+            {!loading && (
+              <>
+                {user ? (
+                  <Link href="/dashboard">
+                    <Button className="bg-black hover:bg-gray-800 text-white">Dashboard</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/auth/login">
+                      <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link href="/auth/sign-up">
+                      <Button className="bg-black hover:bg-gray-800 text-white">Get Started</Button>
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

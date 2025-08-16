@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/lib/actions";
+import { Button } from "@/components/ui/button"
+import { signOut } from "@/lib/actions"
 import {
   BarChart3,
   ChevronDown,
@@ -9,6 +9,7 @@ import {
   DollarSign,
   FileText,
   History,
+  Home,
   LogOut,
   Menu,
   Settings,
@@ -17,60 +18,61 @@ import {
   User,
   Users,
   X,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+} from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface DashboardNavProps {
   user: {
-    email?: string;
-    full_name?: string;
-  };
-  credits: number;
+    email?: string
+    full_name?: string
+  }
+  credits: number
 }
 
 export default function DashboardNav({ user, credits }: DashboardNavProps) {
-  const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const pathname = usePathname()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false)
 
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const response = await fetch("/api/admin/check");
+        const response = await fetch("/api/admin/check")
         if (response.ok) {
-          const data = await response.json();
-          setIsAdmin(data.isAdmin);
+          const data = await response.json()
+          setIsAdmin(data.isAdmin)
         }
       } catch (error) {
-        console.error("Error checking admin status:", error);
+        console.error("Error checking admin status:", error)
       }
-    };
+    }
 
-    checkAdminStatus();
-  }, []);
+    checkAdminStatus()
+  }, [])
 
   // Auto-expand admin menu if on admin route
   useEffect(() => {
     if (pathname.startsWith("/admin")) {
-      setAdminMenuOpen(true);
+      setAdminMenuOpen(true)
     }
-  }, [pathname]);
+  }, [pathname])
 
   // Close mobile menu when route changes
   useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   const navigation = [
+    { name: "Home", href: "/", icon: Home },
     { name: "Dashboard", href: "/dashboard", icon: FileText },
     { name: "Upload Resume", href: "/dashboard/upload", icon: Upload },
     { name: "Resume History", href: "/dashboard/resumes", icon: History },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
-  ];
+  ]
 
   const adminNavigation = [
     { name: "Admin Dashboard", href: "/admin", icon: BarChart3 },
@@ -83,7 +85,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
       icon: DollarSign,
     },
     { name: "Settings", href: "/admin/settings", icon: Settings },
-  ];
+  ]
 
   return (
     <>
@@ -92,16 +94,14 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex flex-col flex-grow bg-gradient-to-b from-slate-900 to-slate-800 border-r border-slate-700/50 pt-5 pb-4 overflow-y-auto scrollbar-hide">
           <div className="flex items-center flex-shrink-0 px-4 mb-8">
             <FileText className="h-8 w-8 text-blue-400" />
-            <span className="ml-2 text-xl font-bold text-white font-heading">
-              CV Analyzer
-            </span>
+            <span className="ml-2 text-xl font-bold text-white font-heading">CV Analyzer</span>
           </div>
 
           <div className="flex-grow flex flex-col">
             <nav className="flex-1 px-3 space-y-1">
               {/* Regular Navigation */}
               {navigation.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href
                 return (
                   <Link
                     key={item.name}
@@ -114,14 +114,12 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                   >
                     <item.icon
                       className={`mr-3 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
-                        isActive
-                          ? "text-blue-100"
-                          : "text-slate-400 group-hover:text-slate-200"
+                        isActive ? "text-blue-100" : "text-slate-400 group-hover:text-slate-200"
                       }`}
                     />
                     {item.name}
                   </Link>
-                );
+                )
               })}
 
               {/* Admin Section */}
@@ -142,14 +140,12 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
 
                   <div
                     className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      adminMenuOpen
-                        ? "max-h-96 opacity-100"
-                        : "max-h-0 opacity-0"
+                      adminMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                     }`}
                   >
                     <div className="mt-2 space-y-1 pl-4">
                       {adminNavigation.map((item) => {
-                        const isActive = pathname === item.href;
+                        const isActive = pathname === item.href
                         return (
                           <Link
                             key={item.name}
@@ -162,14 +158,12 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                           >
                             <item.icon
                               className={`mr-3 flex-shrink-0 h-4 w-4 transition-colors duration-200 ${
-                                isActive
-                                  ? "text-purple-100"
-                                  : "text-slate-400 group-hover:text-purple-300"
+                                isActive ? "text-purple-100" : "text-slate-400 group-hover:text-purple-300"
                               }`}
                             />
                             {item.name}
                           </Link>
-                        );
+                        )
                       })}
                     </div>
                   </div>
@@ -180,12 +174,8 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
             <div className="flex-shrink-0 px-4 py-4 border-t border-slate-700">
               {/* Credits Display */}
               <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-blue-500/20">
-                <div className="text-sm font-medium text-blue-200">
-                  Credits Remaining
-                </div>
-                <div className="text-2xl font-bold text-blue-100 mt-1">
-                  {credits}
-                </div>
+                <div className="text-sm font-medium text-blue-200">Credits Remaining</div>
+                <div className="text-2xl font-bold text-blue-100 mt-1">{credits}</div>
               </div>
 
               {/* Admin Badge */}
@@ -206,12 +196,8 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                   </div>
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
-                    {user.full_name || user.email}
-                  </p>
-                  <p className="text-xs text-slate-400 truncate">
-                    {user.email}
-                  </p>
+                  <p className="text-sm font-medium text-white truncate">{user.full_name || user.email}</p>
+                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
                 </div>
               </div>
 
@@ -237,9 +223,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
         <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50">
           <div className="flex items-center">
             <FileText className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">
-              CV Analyzer
-            </span>
+            <span className="ml-2 text-xl font-bold text-gray-900 font-heading">CV Analyzer</span>
           </div>
           <Button
             variant="ghost"
@@ -247,11 +231,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-gray-600 hover:bg-gray-100"
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
 
@@ -268,9 +248,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                 <div className="flex items-center justify-between p-4 border-b border-slate-700">
                   <div className="flex items-center">
                     <FileText className="h-6 w-6 text-blue-400" />
-                    <span className="ml-2 text-lg font-bold text-white">
-                      CV Analyzer
-                    </span>
+                    <span className="ml-2 text-lg font-bold text-white">CV Analyzer</span>
                   </div>
                   <Button
                     variant="ghost"
@@ -287,7 +265,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                   <nav className="space-y-2">
                     {/* Regular Navigation */}
                     {navigation.map((item) => {
-                      const isActive = pathname === item.href;
+                      const isActive = pathname === item.href
                       return (
                         <Link
                           key={item.name}
@@ -301,14 +279,12 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                         >
                           <item.icon
                             className={`mr-3 flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
-                              isActive
-                                ? "text-blue-100"
-                                : "text-slate-400 group-hover:text-slate-200"
+                              isActive ? "text-blue-100" : "text-slate-400 group-hover:text-slate-200"
                             }`}
                           />
                           {item.name}
                         </Link>
-                      );
+                      )
                     })}
 
                     {/* Admin Section */}
@@ -329,14 +305,12 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
 
                         <div
                           className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                            adminMenuOpen
-                              ? "max-h-96 opacity-100"
-                              : "max-h-0 opacity-0"
+                            adminMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                           }`}
                         >
                           <div className="mt-2 space-y-1 pl-4">
                             {adminNavigation.map((item) => {
-                              const isActive = pathname === item.href;
+                              const isActive = pathname === item.href
                               return (
                                 <Link
                                   key={item.name}
@@ -350,14 +324,12 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                                 >
                                   <item.icon
                                     className={`mr-3 flex-shrink-0 h-4 w-4 transition-colors duration-200 ${
-                                      isActive
-                                        ? "text-purple-100"
-                                        : "text-slate-400 group-hover:text-purple-300"
+                                      isActive ? "text-purple-100" : "text-slate-400 group-hover:text-purple-300"
                                     }`}
                                   />
                                   {item.name}
                                 </Link>
-                              );
+                              )
                             })}
                           </div>
                         </div>
@@ -370,9 +342,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                 <div className="p-4 border-t border-slate-700 bg-slate-800/50">
                   {/* Credits */}
                   <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-sm rounded-xl p-3 mb-3 border border-blue-500/20">
-                    <div className="text-sm font-medium text-blue-200">
-                      Credits: {credits}
-                    </div>
+                    <div className="text-sm font-medium text-blue-200">Credits: {credits}</div>
                   </div>
 
                   {/* Admin Badge */}
@@ -391,12 +361,8 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                       <User className="h-4 w-4 text-white" />
                     </div>
                     <div className="ml-3 min-w-0 flex-1">
-                      <p className="text-sm font-medium text-white truncate">
-                        {user.full_name || user.email}
-                      </p>
-                      <p className="text-xs text-slate-400 truncate">
-                        {user.email}
-                      </p>
+                      <p className="text-sm font-medium text-white truncate">{user.full_name || user.email}</p>
+                      <p className="text-xs text-slate-400 truncate">{user.email}</p>
                     </div>
                   </div>
 
@@ -422,5 +388,5 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
       {/* Mobile menu push content down */}
       <div className="lg:pl-64">{/* Your main content goes here */}</div>
     </>
-  );
+  )
 }
