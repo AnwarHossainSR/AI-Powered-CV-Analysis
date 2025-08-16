@@ -4,8 +4,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
+  let supabase: any;
+
   try {
-    const supabase = await createClient();
+    supabase = await createClient();
 
     // Check admin access (same as bulk upload)
     const {
@@ -141,6 +143,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (stripeProducts.data.length === 0) {
+      // Update last_synced_at setting before returning
+      await updateLastSyncedAt(supabase);
+
       return NextResponse.json({
         success: true,
         message: "No active Stripe products found to sync",
@@ -284,6 +289,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Update last_synced_at setting after sync completion
+    await updateLastSyncedAt(supabase);
+
     return NextResponse.json({
       success:
         syncResults.length > 0 ||
@@ -304,12 +312,48 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Sync error:", error);
+
+    // Update last_synced_at setting even on error
+    if (supabase) {
+      await updateLastSyncedAt(supabase);
+    }
+
     return NextResponse.json(
       {
         error: "Failed to sync with database",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
+    );
+  }
+}
+
+// Helper function to update the last_synced_at setting
+async function updateLastSyncedAt(supabase: any) {
+  try {
+    const currentTimestamp = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("settings")
+      .update({
+        value: currentTimestamp,
+        updated_at: currentTimestamp,
+      })
+      .eq("category", "sync")
+      .eq("key", "last_synced_at");
+
+    if (error) {
+      console.error("Failed to update last_synced_at setting:", error);
+    } else {
+      console.log(
+        "Successfully updated last_synced_at setting to:",
+        currentTimestamp
+      );
+    }
+  } catch (settingError) {
+    console.error(
+      "Unexpected error updating last_synced_at setting:",
+      settingError
     );
   }
 }

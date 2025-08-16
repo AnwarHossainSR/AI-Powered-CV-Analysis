@@ -16,6 +16,7 @@ import {
   getUserCreditTransactions,
   getUserProfile,
 } from "@/lib/queries";
+import { formatRelativeTime } from "@/lib/utils";
 import {
   Activity,
   AlertCircle,
@@ -618,13 +619,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                               <div className="flex items-center space-x-3 mt-1">
                                 <p className="text-sm text-gray-500 flex items-center">
                                   <Clock className="w-3 h-3 mr-1" />
-                                  {new Date(
-                                    transaction.created_at
-                                  ).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  })}
+                                  {formatRelativeTime(transaction.created_at)}
                                 </p>
                                 {transaction.amount_usd && (
                                   <p className="text-sm text-gray-500 flex items-center">

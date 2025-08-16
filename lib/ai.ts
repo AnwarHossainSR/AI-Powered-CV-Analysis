@@ -188,7 +188,6 @@ export async function parseResumeWithAI(file: File): Promise<{
     const text = response.text();
 
     console.log("Received response from Gemini API, length:", text.length);
-    console.log("Raw response:", text.substring(0, 500) + "..."); // Log first 500 chars
 
     let parsedData: ResumeData;
     try {

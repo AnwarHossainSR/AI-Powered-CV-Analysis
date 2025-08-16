@@ -3,7 +3,7 @@ import { StripePlansTab } from "@/components/admin/stripe-plans-tab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getlastSyncedAt } from "@/lib/queries";
-import { formatDateTime } from "@/lib/utils";
+import { formatRelativeTime } from "@/lib/utils";
 import { CreditCard, Package, TrendingUp, Users } from "lucide-react";
 
 export default async function BillingManagementPage() {
@@ -131,7 +131,7 @@ export default async function BillingManagementPage() {
                 <p className="text-sm text-gray-600">
                   Last synchronized with Stripe:{" "}
                   <span className="font-medium text-green-600">
-                    {formatDateTime(lastSync)}
+                    {formatRelativeTime(lastSync)}
                   </span>
                 </p>
               </div>

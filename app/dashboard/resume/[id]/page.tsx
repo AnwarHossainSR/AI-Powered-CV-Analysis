@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getParseData, getResume, getUser } from "@/lib/queries";
 import type { ParsedData } from "@/lib/types";
+import { formatDateTime } from "@/lib/utils";
 import {
   ArrowLeft,
   Briefcase,
@@ -81,7 +82,7 @@ export default async function ResumeDetailsPage(
                   {resume.filename}
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Analyzed on {new Date(data.created_at).toLocaleDateString()}
+                  Analyzed on {formatDateTime(resume.created_at)}
                 </p>
               </div>
             </div>
