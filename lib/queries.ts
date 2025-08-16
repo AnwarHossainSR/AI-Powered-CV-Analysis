@@ -34,18 +34,23 @@ export const getUserResumes = cache(async (userId: string) => {
   return data || [];
 });
 
-export const getResume = cache(async (resumeId: string, userId: string) => {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("resumes")
-    .select("*")
-    .eq("id", resumeId)
-    .eq("user_id", userId)
-    .single();
+export const getResume = cache(
+  async (resumeId: string, userId: string, withParsedData = false) => {
+    const supabase = await createClient();
 
-  if (error) throw error;
-  return data;
-});
+    const query = supabase
+      .from("resumes")
+      .select(withParsedData ? "*, parsed_data(*)" : "*")
+      .eq("id", resumeId)
+      .eq("user_id", userId)
+      .single();
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data;
+  }
+);
 
 export const getResumeWithParsedData = cache(
   async (resumeId: string, userId: string) => {
@@ -208,3 +213,33 @@ export const getlastSyncedAt = cache(async () => {
   if (error) throw error;
   return data?.value || null;
 });
+
+// Helper function to update the last_synced_at setting
+export const updateLastSyncedAt = async function (supabase: any) {
+  try {
+    const currentTimestamp = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("settings")
+      .update({
+        value: currentTimestamp,
+        updated_at: currentTimestamp,
+      })
+      .eq("category", "sync")
+      .eq("key", "last_synced_at");
+
+    if (error) {
+      console.error("Failed to update last_synced_at setting:", error);
+    } else {
+      console.log(
+        "Successfully updated last_synced_at setting to:",
+        currentTimestamp
+      );
+    }
+  } catch (settingError) {
+    console.error(
+      "Unexpected error updating last_synced_at setting:",
+      settingError
+    );
+  }
+};

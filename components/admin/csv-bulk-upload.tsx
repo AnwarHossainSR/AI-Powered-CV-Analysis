@@ -58,12 +58,9 @@ export function CSVBulkUpload({
 
   const downloadTemplate = () => {
     const template = `name,description,price,interval_type,credits,features,sort_order
-Starter Pack,"50 resume analyses to get you started",9.99,one_time,50,"50 AI resume analyses|Basic insights|PDF export",1
-Professional Pack,"100 resume analyses for job seekers",17.99,one_time,100,"100 AI resume analyses|Advanced insights|PDF export|Cover letter generation",2
-Career Booster,"250 resume analyses for active job hunting",39.99,one_time,250,"250 AI resume analyses|Premium insights|PDF export|Cover letter generation|Priority support",3
-Enterprise Pack,"500 resume analyses for recruiters",69.99,one_time,500,"500 AI resume analyses|Enterprise insights|PDF export|Cover letter generation|Priority support|Bulk processing",4
-Basic Plan,"Monthly subscription with 25 analyses",14.99,monthly,25,"25 monthly analyses|Basic insights|PDF export|Email support",5
-Premium Plan,"Monthly subscription with unlimited analyses",29.99,monthly,-1,"Unlimited analyses|Premium insights|PDF export|Cover letter generation|Priority support|Advanced analytics",6`;
+Free,"Free usage upto 5 resume",0.00,one_time,5,"5 AI resume analyses|Free insights|PDF export|Cover letter generation|Priority support|Bulk processing",4
+Basic,"Monthly subscription with 25 analyses",14.99,monthly,25,"25 monthly analyses|Basic insights|PDF export|Email support",5
+Premium,"Monthly subscription with unlimited analyses",29.99,monthly,-1,"Unlimited analyses|Premium insights|PDF export|Cover letter generation|Priority support|Advanced analytics",6`;
 
     const blob = new Blob([template], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);

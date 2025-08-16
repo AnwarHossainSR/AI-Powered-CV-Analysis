@@ -1,3 +1,4 @@
+import { updateLastSyncedAt } from "@/lib/queries";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
@@ -147,6 +148,10 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
+    }
+
+    if (supabase) {
+      await updateLastSyncedAt(supabase);
     }
 
     return NextResponse.json({
