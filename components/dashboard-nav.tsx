@@ -184,7 +184,7 @@ export default function DashboardNav({ user, credits }: DashboardNavProps) {
                   Credits Remaining
                 </div>
                 <div className="text-2xl font-bold text-blue-100 mt-1">
-                  {!isAdmin ? credits : "Unlimited"}
+                  {credits}
                 </div>
               </div>
 
