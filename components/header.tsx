@@ -9,6 +9,8 @@ import { usePathname } from "next/navigation";
 export default function Header() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
+  console.log("User:", user);
+  console.log("Loading:", loading);
 
   return (
     <header className="bg-white shadow-sm">
