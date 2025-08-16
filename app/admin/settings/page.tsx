@@ -1,99 +1,177 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { getUser } from "@/lib/queries";
-import { Database, Key, Mail, Shield } from "lucide-react";
+"use client"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
+import { Database, Key, Mail, Shield, Palette } from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
-export default async function AdminSettingsPage() {
-  const user = await getUser();
+interface Setting {
+  id: string
+  category: string
+  key: string
+  value: string
+  description: string
+  type: string
+  is_public: boolean
+}
+
+export default function AdminSettingsPage() {
+  const [settings, setSettings] = useState<Setting[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("/api/admin/settings")
+      if (!response.ok) throw new Error("Failed to fetch settings")
+
+      const data = await response.json()
+      setSettings(data.settings || [])
+    } catch (error) {
+      console.error("Error fetching settings:", error)
+      toast.error("Failed to load settings")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateSetting = (category: string, key: string, value: string) => {
+    setSettings((prev) =>
+      prev.map((setting) => (setting.category === category && setting.key === key ? { ...setting, value } : setting)),
+    )
+  }
+
+  const saveSettings = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings }),
+      })
+
+      if (!response.ok) throw new Error("Failed to save settings")
+
+      toast.success("Settings saved successfully")
+    } catch (error) {
+      console.error("Error saving settings:", error)
+      toast.error("Failed to save settings")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const getSettingsByCategory = (category: string) => {
+    return settings.filter((setting) => setting.category === category)
+  }
+
+  const renderSettingInput = (setting: Setting) => {
+    const value = setting.value || ""
+
+    switch (setting.type) {
+      case "boolean":
+        return (
+          <Switch
+            checked={value === "true"}
+            onCheckedChange={(checked) => updateSetting(setting.category, setting.key, checked.toString())}
+          />
+        )
+      case "password":
+        return (
+          <Input
+            type="password"
+            value={value}
+            onChange={(e) => updateSetting(setting.category, setting.key, e.target.value)}
+            placeholder="••••••••••••••••"
+          />
+        )
+      case "number":
+        return (
+          <Input
+            type="number"
+            value={value}
+            onChange={(e) => updateSetting(setting.category, setting.key, e.target.value)}
+          />
+        )
+      case "email":
+        return (
+          <Input
+            type="email"
+            value={value}
+            onChange={(e) => updateSetting(setting.category, setting.key, e.target.value)}
+          />
+        )
+      default:
+        return (
+          <Input
+            type="text"
+            value={value}
+            onChange={(e) => updateSetting(setting.category, setting.key, e.target.value)}
+          />
+        )
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+      </div>
+    )
+  }
 
   return (
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Configure system settings and integrations.
-        </p>
+        <p className="mt-1 text-sm text-gray-600">Configure system settings and integrations.</p>
       </div>
 
       <div className="space-y-6">
-        {/* System Status */}
+        {/* System Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Database className="h-5 w-5 mr-2" />
-              System Status
+              System Configuration
             </CardTitle>
-            <CardDescription>Current system health and status</CardDescription>
+            <CardDescription>Core system settings and limits</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <Badge className="bg-green-100 text-green-800">Online</Badge>
-                <div className="mt-2 text-sm text-gray-600">Database</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <Badge className="bg-green-100 text-green-800">Active</Badge>
-                <div className="mt-2 text-sm text-gray-600">AI Processing</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                <div className="mt-2 text-sm text-gray-600">Stripe</div>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {getSettingsByCategory("system").map((setting) => (
+                <div key={setting.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{setting.description}</label>
+                  {renderSettingInput(setting)}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* API Configuration */}
+        {/* AI Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Key className="h-5 w-5 mr-2" />
-              API Configuration
+              AI Configuration
             </CardTitle>
-            <CardDescription>
-              Manage API keys and external integrations
-            </CardDescription>
+            <CardDescription>Configure AI processing settings and parameters</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Google Gemini API
-                </label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="password"
-                    placeholder="••••••••••••••••"
-                    disabled
-                  />
-                  <Badge className="bg-green-100 text-green-800">
-                    Connected
-                  </Badge>
+              {getSettingsByCategory("ai").map((setting) => (
+                <div key={setting.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{setting.description}</label>
+                  {renderSettingInput(setting)}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stripe API
-                </label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="password"
-                    placeholder="••••••••••••••••"
-                    disabled
-                  />
-                  <Badge className="bg-green-100 text-green-800">
-                    Connected
-                  </Badge>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -103,75 +181,71 @@ export default async function AdminSettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Mail className="h-5 w-5 mr-2" />
-              Email Settings
+              Email Configuration
             </CardTitle>
-            <CardDescription>
-              Configure email notifications and templates
-            </CardDescription>
+            <CardDescription>Configure email notifications and SMTP settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  From Email
-                </label>
-                <Input type="email" placeholder="noreply@cvanalyzer.com" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Support Email
-                </label>
-                <Input type="email" placeholder="support@cvanalyzer.com" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Email Notifications
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Send email notifications for important events
-                </p>
-              </div>
-              <Button variant="outline">Configure</Button>
+              {getSettingsByCategory("email").map((setting) => (
+                <div key={setting.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{setting.description}</label>
+                  {renderSettingInput(setting)}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Admin Users */}
+        {/* Stripe Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="h-5 w-5 mr-2" />
-              Admin Users
+              Payment Configuration
             </CardTitle>
-            <CardDescription>Manage administrator access</CardDescription>
+            <CardDescription>Stripe payment processing settings</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {user!.email}
-                  </p>
-                  <p className="text-sm text-gray-600">Super Administrator</p>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {getSettingsByCategory("stripe").map((setting) => (
+                <div key={setting.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{setting.description}</label>
+                  {renderSettingInput(setting)}
                 </div>
-                <Badge>Active</Badge>
-              </div>
+              ))}
             </div>
-            <div className="mt-4">
-              <Button variant="outline">Add Admin User</Button>
+          </CardContent>
+        </Card>
+
+        {/* UI Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Palette className="h-5 w-5 mr-2" />
+              UI Configuration
+            </CardTitle>
+            <CardDescription>Customize the appearance and branding</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {getSettingsByCategory("ui").map((setting) => (
+                <div key={setting.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{setting.description}</label>
+                  {renderSettingInput(setting)}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
         {/* Save Changes */}
         <div className="flex justify-end">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Save Changes
+          <Button onClick={saveSettings} disabled={saving} className="bg-black hover:bg-gray-800 text-white">
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>
     </>
-  );
+  )
 }
