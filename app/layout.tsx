@@ -3,11 +3,10 @@ import { Inter, Playfair_Display } from "next/font/google"
 import type React from "react"
 import { Suspense } from "react"
 import { Toaster } from "sonner"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { AuthProvider } from "@/lib/auth-context"
 import { LoadingScreen } from "@/components/ui/loading-screen"
-import { QueryClientProvider } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
-import { queryClient } from "@/lib/react-query-client"
 import "./globals.css"
 
 const inter = Inter({
@@ -20,6 +19,17 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-playfair",
+})
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
 })
 
 export const metadata: Metadata = {
@@ -96,9 +106,9 @@ export default function RootLayout({
           <AuthProvider>
             <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
           </AuthProvider>
+          <Toaster position="top-right" richColors />
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
-        <Toaster position="top-right" richColors />
       </body>
     </html>
   )

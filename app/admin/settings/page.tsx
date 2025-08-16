@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Database, Key, Mail, Shield, Palette } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useAdminSettings, useUpdateAdminSettings } from "@/lib/hooks/use-query-hooks"
+import { toast } from "sonner"
 
 interface Setting {
   id: string
@@ -18,30 +18,52 @@ interface Setting {
 }
 
 export default function AdminSettingsPage() {
-  const { data: settingsData, isLoading: loading } = useAdminSettings()
-  const settings = settingsData?.settings || []
-
-  const updateMutation = useUpdateAdminSettings()
-
-  const [localSettings, setLocalSettings] = useState<Setting[]>([])
+  const [settings, setSettings] = useState<Setting[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (settings.length > 0) {
-      setLocalSettings(settings)
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("/api/admin/settings")
+      if (!response.ok) throw new Error("Failed to fetch settings")
+
+      const data = await response.json()
+      setSettings(data.settings || [])
+    } catch (error) {
+      console.error("Error fetching settings:", error)
+      toast.error("Failed to load settings")
+    } finally {
+      setLoading(false)
     }
-  }, [settings])
+  }
 
   const updateSetting = (category: string, key: string, value: string) => {
-    setLocalSettings((prev) =>
+    setSettings((prev) =>
       prev.map((setting) => (setting.category === category && setting.key === key ? { ...setting, value } : setting)),
     )
   }
 
   const saveSettings = async () => {
+    setSaving(true)
     try {
-      await updateMutation.mutateAsync(localSettings)
+      const response = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings }),
+      })
+
+      if (!response.ok) throw new Error("Failed to save settings")
+
+      toast.success("Settings saved successfully")
     } catch (error) {
-      // Error handling is done in the mutation hook
+      console.error("Error saving settings:", error)
+      toast.error("Failed to save settings")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -219,12 +241,8 @@ export default function AdminSettingsPage() {
 
         {/* Save Changes */}
         <div className="flex justify-end">
-          <Button
-            onClick={saveSettings}
-            disabled={updateMutation.isLoading}
-            className="bg-black hover:bg-gray-800 text-white"
-          >
-            {updateMutation.isLoading ? "Saving..." : "Save Changes"}
+          <Button onClick={saveSettings} disabled={saving} className="bg-black hover:bg-gray-800 text-white">
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>

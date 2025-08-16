@@ -11,107 +11,69 @@ import { UserEditModal } from "@/components/admin/user-edit-modal"
 import { PlanAssignmentModal } from "@/components/admin/plan-assignment-modal"
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { Search, Users, Filter, RefreshCw } from "lucide-react"
-import { toast } from "sonner"
 import { formatDate } from "@/lib/utils"
-import { useAdminUsers } from "@/lib/hooks/use-query-hooks"
+import { useAdminUsers, useUpdateUser } from "@/lib/hooks/use-query-hooks"
+import { toast } from "react-toastify"
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [subscriptionFilter, setSubscriptionFilter] = useState("all")
 
-  const filters = useMemo(
-    () => ({
-      search: searchTerm,
-      status: statusFilter !== "all" ? statusFilter : undefined,
-      subscription: subscriptionFilter !== "all" ? subscriptionFilter : undefined,
-    }),
-    [searchTerm, statusFilter, subscriptionFilter],
-  )
-
-  const { data: usersData, isLoading: loading, refetch: fetchUsers } = useAdminUsers(filters)
-  const users = usersData?.users || []
-
-  // Modal states remain the same
+  // Modal states
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [planModalOpen, setPlanModalOpen] = useState(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [actionType, setActionType] = useState("")
 
-  const handleEdit = (user: any) => {
-    setSelectedUser(user)
-    setEditModalOpen(true)
-  }
+  const filters = useMemo(
+    () => ({
+      search: searchTerm,
+      status: statusFilter,
+      subscription: subscriptionFilter,
+    }),
+    [searchTerm, statusFilter, subscriptionFilter],
+  )
 
-  const handleAssignPlan = (user: any) => {
-    setSelectedUser(user)
-    setPlanModalOpen(true)
-  }
+  const { data: usersData, isLoading, refetch } = useAdminUsers(filters)
+  const updateUserMutation = useUpdateUser()
 
-  const handleBlock = (user: any) => {
-    setSelectedUser(user)
-    setActionType("block")
-    setConfirmDialogOpen(true)
-  }
-
-  const handleUnblock = (user: any) => {
-    setSelectedUser(user)
-    setActionType("unblock")
-    setConfirmDialogOpen(true)
-  }
-
-  const handleMakeAdmin = (user: any) => {
-    setSelectedUser(user)
-    setActionType("makeAdmin")
-    setConfirmDialogOpen(true)
-  }
+  const users = usersData?.users || []
 
   const executeAction = async () => {
     if (!selectedUser) return
 
     try {
-      let endpoint = ""
-      const method = "PUT"
-      let body = {}
+      let updateData = {}
 
       switch (actionType) {
         case "block":
-          endpoint = `/api/admin/users/${selectedUser.id}`
-          body = { ...selectedUser, is_blocked: true }
+          updateData = { ...selectedUser, is_blocked: true }
           break
         case "unblock":
-          endpoint = `/api/admin/users/${selectedUser.id}`
-          body = { ...selectedUser, is_blocked: false }
+          updateData = { ...selectedUser, is_blocked: false }
           break
         case "makeAdmin":
+          // This would need a separate endpoint for admin role assignment
           toast.info("Admin role assignment feature coming soon")
           return
       }
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+      await updateUserMutation.mutateAsync({
+        id: selectedUser.id,
+        data: updateData,
       })
-
-      if (response.ok) {
-        toast.success(`User ${actionType}ed successfully`)
-        fetchUsers() // Use React Query refetch
-      } else {
-        toast.error(`Failed to ${actionType} user`)
-      }
     } catch (error) {
       console.error(`Error ${actionType}ing user:`, error)
-      toast.error(`Error ${actionType}ing user`)
     }
   }
 
   const handleUserUpdate = (updatedUser: any) => {
-    fetchUsers() // Refetch to update cache
+    refetch()
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="h-8 w-8 animate-spin" />
@@ -136,7 +98,7 @@ export default function AdminUsersPage() {
               </CardTitle>
               <CardDescription>Complete list of registered users with advanced filtering</CardDescription>
             </div>
-            <Button onClick={() => fetchUsers()} variant="outline" size="sm">
+            <Button onClick={() => refetch()} variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -243,11 +205,29 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <UserActionsDropdown
                           user={user}
-                          onEdit={handleEdit}
-                          onBlock={handleBlock}
-                          onUnblock={handleUnblock}
-                          onAssignPlan={handleAssignPlan}
-                          onMakeAdmin={handleMakeAdmin}
+                          onEdit={() => {
+                            setSelectedUser(user)
+                            setEditModalOpen(true)
+                          }}
+                          onBlock={() => {
+                            setSelectedUser(user)
+                            setActionType("block")
+                            setConfirmDialogOpen(true)
+                          }}
+                          onUnblock={() => {
+                            setSelectedUser(user)
+                            setActionType("unblock")
+                            setConfirmDialogOpen(true)
+                          }}
+                          onAssignPlan={() => {
+                            setSelectedUser(user)
+                            setPlanModalOpen(true)
+                          }}
+                          onMakeAdmin={() => {
+                            setSelectedUser(user)
+                            setActionType("makeAdmin")
+                            setConfirmDialogOpen(true)
+                          }}
                         />
                       </td>
                     </tr>
