@@ -5,6 +5,9 @@ import { Suspense } from "react"
 import { Toaster } from "sonner"
 import { AuthProvider } from "@/lib/auth-context"
 import { LoadingScreen } from "@/components/ui/loading-screen"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { queryClient } from "@/lib/react-query-client"
 import "./globals.css"
 
 const inter = Inter({
@@ -78,7 +81,7 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 export default function RootLayout({
@@ -89,9 +92,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased scrollbar-hide`}>
       <body>
-        <AuthProvider>
-          <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
-        </AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
+          </AuthProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
         <Toaster position="top-right" richColors />
       </body>
     </html>

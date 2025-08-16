@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,77 +13,31 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
 import { Search, Users, Filter, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/utils"
+import { useAdminUsers } from "@/lib/hooks/use-query-hooks"
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState([])
-  const [filteredUsers, setFilteredUsers] = useState([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [subscriptionFilter, setSubscriptionFilter] = useState("all")
 
-  // Modal states
+  const filters = useMemo(
+    () => ({
+      search: searchTerm,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      subscription: subscriptionFilter !== "all" ? subscriptionFilter : undefined,
+    }),
+    [searchTerm, statusFilter, subscriptionFilter],
+  )
+
+  const { data: usersData, isLoading: loading, refetch: fetchUsers } = useAdminUsers(filters)
+  const users = usersData?.users || []
+
+  // Modal states remain the same
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [planModalOpen, setPlanModalOpen] = useState(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [actionType, setActionType] = useState("")
-
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  useEffect(() => {
-    filterUsers()
-  }, [users, searchTerm, statusFilter, subscriptionFilter])
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch("/api/admin/users")
-      if (response.ok) {
-        const data = await response.json()
-        console.log("[v0] API response:", data) // Debug log to see the actual response structure
-        setUsers(data.users || data) // Handle both structured and direct array responses
-      } else {
-        toast.error("Failed to fetch users")
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error)
-      toast.error("Error loading users")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const filterUsers = () => {
-    let filtered = users
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (user: any) =>
-          user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((user: any) => {
-        if (statusFilter === "blocked") return user.is_blocked
-        if (statusFilter === "active") return !user.is_blocked
-        return true
-      })
-    }
-
-    // Subscription filter
-    if (subscriptionFilter !== "all") {
-      filtered = filtered.filter((user: any) => user.subscription_status === subscriptionFilter)
-    }
-
-    setFilteredUsers(filtered)
-  }
 
   const handleEdit = (user: any) => {
     setSelectedUser(user)
@@ -131,7 +85,6 @@ export default function AdminUsersPage() {
           body = { ...selectedUser, is_blocked: false }
           break
         case "makeAdmin":
-          // This would need a separate endpoint for admin role assignment
           toast.info("Admin role assignment feature coming soon")
           return
       }
@@ -144,7 +97,7 @@ export default function AdminUsersPage() {
 
       if (response.ok) {
         toast.success(`User ${actionType}ed successfully`)
-        fetchUsers() // Refresh the list
+        fetchUsers() // Use React Query refetch
       } else {
         toast.error(`Failed to ${actionType} user`)
       }
@@ -155,7 +108,7 @@ export default function AdminUsersPage() {
   }
 
   const handleUserUpdate = (updatedUser: any) => {
-    setUsers(users.map((user: any) => (user.id === updatedUser.id ? updatedUser : user)))
+    fetchUsers() // Refetch to update cache
   }
 
   if (loading) {
@@ -179,11 +132,11 @@ export default function AdminUsersPage() {
             <div>
               <CardTitle className="flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                All Users ({filteredUsers.length})
+                All Users ({users.length})
               </CardTitle>
               <CardDescription>Complete list of registered users with advanced filtering</CardDescription>
             </div>
-            <Button onClick={fetchUsers} variant="outline" size="sm">
+            <Button onClick={() => fetchUsers()} variant="outline" size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -224,7 +177,7 @@ export default function AdminUsersPage() {
             </Select>
           </div>
 
-          {filteredUsers.length > 0 ? (
+          {users.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -253,7 +206,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredUsers.map((user: any) => (
+                  {users.map((user: any) => (
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
