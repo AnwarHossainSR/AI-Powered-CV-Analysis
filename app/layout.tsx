@@ -1,23 +1,23 @@
-import type { Metadata } from "next"
-import { Inter, Playfair_Display } from "next/font/google"
-import type React from "react"
-import { Suspense } from "react"
-import { Toaster } from "sonner"
-import { AuthProvider } from "@/lib/auth-context"
-import { LoadingScreen } from "@/components/ui/loading-screen"
-import "./globals.css"
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { AuthProvider } from "@/lib/auth-context";
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import type React from "react";
+import { Suspense } from "react";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
-})
+});
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-playfair",
-})
+});
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +26,14 @@ export const metadata: Metadata = {
   },
   description:
     "Upload your resume and get AI-powered analysis, structured data extraction, and professional insights. Improve your career prospects with detailed resume feedback.",
-  keywords: ["resume analysis", "CV analyzer", "AI resume", "job search", "career development", "resume feedback"],
+  keywords: [
+    "resume analysis",
+    "CV analyzer",
+    "AI resume",
+    "job search",
+    "career development",
+    "resume feedback",
+  ],
   authors: [{ name: "CV Analyzer Team" }],
   creator: "CV Analyzer",
   publisher: "CV Analyzer",
@@ -35,7 +42,9 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://cv-analyzer.vercel.app"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://cv-analyzer.vercel.app"
+  ),
   alternates: {
     canonical: "/",
   },
@@ -78,16 +87,19 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },
-    generator: 'v0.app'
-}
+  generator: "v0.app",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased scrollbar-hide`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${playfair.variable} antialiased scrollbar-hide`}
+    >
       <body>
         <AuthProvider>
           <Suspense fallback={<LoadingScreen />}>{children}</Suspense>
@@ -95,5 +107,5 @@ export default function RootLayout({
         <Toaster position="top-right" richColors />
       </body>
     </html>
-  )
+  );
 }

@@ -76,6 +76,34 @@ export async function updateSession(request: NextRequest) {
       const redirectUrl = new URL("/auth/login", request.url);
       return NextResponse.redirect(redirectUrl);
     }
+
+    // Check if authenticated user is blocked
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("is_blocked")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error checking user profile in middleware:", profileError);
+      // If we can't check the profile, sign them out for safety
+      const response = NextResponse.redirect(
+        new URL("/auth/login", request.url)
+      );
+      response.cookies.delete("sb-access-token");
+      response.cookies.delete("sb-refresh-token");
+      return response;
+    }
+
+    if (profile?.is_blocked) {
+      // User is blocked - sign them out and redirect to login with message
+      const response = NextResponse.redirect(
+        new URL("/auth/login?blocked=true", request.url)
+      );
+      response.cookies.delete("sb-access-token");
+      response.cookies.delete("sb-refresh-token");
+      return response;
+    }
   }
 
   // Handle admin routes with role checking
@@ -85,14 +113,43 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
+    // First check if user is blocked (same logic as protected routes)
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("is_blocked")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error(
+        "Error checking user profile in admin middleware:",
+        profileError
+      );
+      const response = NextResponse.redirect(
+        new URL("/auth/login", request.url)
+      );
+      response.cookies.delete("sb-access-token");
+      response.cookies.delete("sb-refresh-token");
+      return response;
+    }
+
+    if (profile?.is_blocked) {
+      const response = NextResponse.redirect(
+        new URL("/auth/login?blocked=true", request.url)
+      );
+      response.cookies.delete("sb-access-token");
+      response.cookies.delete("sb-refresh-token");
+      return response;
+    }
+
     // Check if user is admin
-    const { data: profile } = await supabase
+    const { data: adminProfile } = await supabase
       .from("admin_users")
       .select("*")
       .eq("id", user.id)
       .single();
 
-    if (!profile || profile.role !== "super_admin") {
+    if (!adminProfile || adminProfile.role !== "super_admin") {
       const redirectUrl = new URL("/dashboard", request.url);
       return NextResponse.redirect(redirectUrl);
     }

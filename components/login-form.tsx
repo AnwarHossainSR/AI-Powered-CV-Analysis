@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/actions";
 import { FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -23,7 +23,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg font-medium rounded-lg h-[60px]"
+      className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-medium rounded-lg"
     >
       {pending ? (
         <>
@@ -39,6 +39,8 @@ function SubmitButton() {
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isBlocked = searchParams.get("blocked");
   const [state, formAction] = useActionState(signIn, null);
 
   // Handle successful login by redirecting
@@ -64,6 +66,14 @@ export default function LoginForm() {
 
       <CardContent>
         <form action={formAction} className="space-y-6">
+          {/* Show blocked message if user was redirected due to being blocked */}
+          {isBlocked && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              Your account has been blocked. Please contact support for
+              assistance.
+            </div>
+          )}
+
           {state?.error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {state.error}

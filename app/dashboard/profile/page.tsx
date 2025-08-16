@@ -118,7 +118,7 @@ export default async function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                  <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg px-6 py-2">
+                  <Button className="bg-black hover:bg-gray-800 text-white shadow-lg px-6 py-2">
                     Save Changes
                   </Button>
                 </div>
