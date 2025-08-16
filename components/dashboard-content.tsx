@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { Resume } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatRelativeTime } from "@/lib/utils";
 import {
   AlertCircle,
   CheckCircle,
@@ -222,7 +222,7 @@ export function DashboardContent({
                         {resume.filename}
                       </h4>
                       <p className="text-xs text-gray-500">
-                        Uploaded {formatDate(resume.created_at)}
+                        Uploaded {formatRelativeTime(resume.created_at)}
                       </p>
                     </div>
                   </div>

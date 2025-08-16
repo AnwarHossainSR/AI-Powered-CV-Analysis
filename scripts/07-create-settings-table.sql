@@ -45,6 +45,9 @@ INSERT INTO settings (category, key, value, description, type, is_public) VALUES
 ('ui', 'logo_text', 'CV Analyzer', 'Logo text', 'text', true),
 ('ui', 'footer_text', '© 2024 CV Analyzer. All rights reserved.', 'Footer copyright text', 'text', true);
 
+-- db sync timestamp
+('sync', 'last_synced_at', to_char(NOW(), 'YYYY-MM-DD HH24:MI:SS'), 'Last time the database was synced', 'text', true);
+
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_settings_updated_at()
 RETURNS TRIGGER AS $$

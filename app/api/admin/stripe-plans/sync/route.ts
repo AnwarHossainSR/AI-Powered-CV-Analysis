@@ -4,8 +4,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
+  let supabase: any;
+
   try {
-    const supabase = await createClient();
+    supabase = await createClient();
 
     // Check admin access (same as bulk upload)
     const {
@@ -58,18 +60,31 @@ export async function POST(request: NextRequest) {
       expand: ["data.default_price"],
     });
 
-    if (stripeProducts.data.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: "No active Stripe products found to sync",
-        results: [],
-        debug: {
-          totalProductsInStripe: allProducts.data.length,
-          totalPricesInStripe: allPrices.data.length,
-          activeProductsToSync: 0,
-        },
-      });
+    // Get all existing billing plans from database
+    const { data: existingBillingPlans, error: fetchPlansError } =
+      await supabase
+        .from("billing_plans")
+        .select("id, name, stripe_product_id");
+
+    if (fetchPlansError) {
+      console.error("Error fetching existing billing plans:", fetchPlansError);
+      return NextResponse.json(
+        { error: "Failed to fetch existing billing plans" },
+        { status: 500 }
+      );
     }
+
+    // Create set of active Stripe product IDs for quick lookup
+    const activeStripeProductIds = new Set(
+      stripeProducts.data.map((product) => product.id)
+    );
+
+    // Find billing plans that no longer exist in Stripe
+    const plansToDelete = existingBillingPlans.filter(
+      (plan: any) =>
+        plan.stripe_product_id &&
+        !activeStripeProductIds.has(plan.stripe_product_id)
+    );
 
     const stripePrices = await stripe.prices.list({
       active: true,
@@ -89,6 +104,61 @@ export async function POST(request: NextRequest) {
     // Sync each product to database
     const syncResults = [];
     const errors = [];
+    const deletedPlans = [];
+
+    // Delete plans that no longer exist in Stripe
+    for (const planToDelete of plansToDelete) {
+      try {
+        const { error: deleteError } = await supabase
+          .from("billing_plans")
+          .delete()
+          .eq("id", planToDelete.id);
+
+        if (deleteError) {
+          console.error(
+            `Failed to delete plan ${planToDelete.name}:`,
+            deleteError
+          );
+          errors.push(
+            `Delete failed for "${planToDelete.name}": ${deleteError.message}`
+          );
+        } else {
+          console.log(`Successfully deleted plan: ${planToDelete.name}`);
+          deletedPlans.push({
+            action: "deleted",
+            product: planToDelete.name,
+            id: planToDelete.id,
+            reason: "No longer exists in Stripe",
+          });
+        }
+      } catch (deleteErr) {
+        console.error(
+          `Unexpected error deleting ${planToDelete.name}:`,
+          deleteErr
+        );
+        errors.push(
+          `Unexpected delete error for "${planToDelete.name}": ${deleteErr}`
+        );
+      }
+    }
+
+    if (stripeProducts.data.length === 0) {
+      // Update last_synced_at setting before returning
+      await updateLastSyncedAt(supabase);
+
+      return NextResponse.json({
+        success: true,
+        message: "No active Stripe products found to sync",
+        results: [],
+        deleted: deletedPlans,
+        debug: {
+          totalProductsInStripe: allProducts.data.length,
+          totalPricesInStripe: allPrices.data.length,
+          activeProductsToSync: 0,
+          plansDeleted: deletedPlans.length,
+        },
+      });
+    }
 
     for (const product of stripeProducts.data) {
       const productPrices = pricesByProduct[product.id] || [];
@@ -107,7 +177,7 @@ export async function POST(request: NextRequest) {
           .from("billing_plans")
           .select("id, name")
           .eq("stripe_product_id", product.id)
-          .maybeSingle(); // Use maybeSingle instead of single
+          .maybeSingle();
 
         if (fetchError) {
           console.error("Error fetching existing plan:", fetchError);
@@ -219,27 +289,71 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Update last_synced_at setting after sync completion
+    await updateLastSyncedAt(supabase);
+
     return NextResponse.json({
-      success: syncResults.length > 0 || errors.length === 0,
-      message: `Processed ${stripeProducts.data.length} products. ${syncResults.length} successful, ${errors.length} errors.`,
+      success:
+        syncResults.length > 0 ||
+        deletedPlans.length > 0 ||
+        errors.length === 0,
+      message: `Processed ${stripeProducts.data.length} products. ${syncResults.length} successful, ${deletedPlans.length} deleted, ${errors.length} errors.`,
       results: syncResults,
+      deleted: deletedPlans,
       errors: errors,
       debug: {
         totalProductsInStripe: allProducts.data.length,
         totalPricesInStripe: allPrices.data.length,
         activeProductsToSync: stripeProducts.data.length,
         processedSuccessfully: syncResults.length,
+        plansDeleted: deletedPlans.length,
         errorCount: errors.length,
       },
     });
   } catch (error) {
     console.error("Sync error:", error);
+
+    // Update last_synced_at setting even on error
+    if (supabase) {
+      await updateLastSyncedAt(supabase);
+    }
+
     return NextResponse.json(
       {
         error: "Failed to sync with database",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
+    );
+  }
+}
+
+// Helper function to update the last_synced_at setting
+async function updateLastSyncedAt(supabase: any) {
+  try {
+    const currentTimestamp = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("settings")
+      .update({
+        value: currentTimestamp,
+        updated_at: currentTimestamp,
+      })
+      .eq("category", "sync")
+      .eq("key", "last_synced_at");
+
+    if (error) {
+      console.error("Failed to update last_synced_at setting:", error);
+    } else {
+      console.log(
+        "Successfully updated last_synced_at setting to:",
+        currentTimestamp
+      );
+    }
+  } catch (settingError) {
+    console.error(
+      "Unexpected error updating last_synced_at setting:",
+      settingError
     );
   }
 }

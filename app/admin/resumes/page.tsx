@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getAllResumes } from "@/lib/queries";
+import { formatRelativeTime } from "@/lib/utils";
 import {
   AlertCircle,
   CheckCircle,
@@ -138,7 +139,7 @@ export default async function AdminResumesPage() {
                         {(resume.file_size / 1024 / 1024).toFixed(2)} MB
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(resume.created_at).toLocaleDateString()}
+                        {formatRelativeTime(resume.created_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">

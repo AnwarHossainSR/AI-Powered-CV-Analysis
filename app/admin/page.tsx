@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getAdminStats } from "@/lib/admin";
+import { formatRelativeTime } from "@/lib/utils";
 import {
   AlertCircle,
   CheckCircle,
@@ -152,7 +153,7 @@ export default async function AdminDashboard() {
                         {user.subscription_status}
                       </Badge>
                       <p className="text-xs text-gray-500 mt-1">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {formatRelativeTime(user.created_at)}
                       </p>
                     </div>
                   </div>
@@ -204,7 +205,7 @@ export default async function AdminDashboard() {
                         {resume.status}
                       </Badge>
                       <p className="text-xs text-gray-500 mt-1">
-                        {new Date(resume.created_at).toLocaleDateString()}
+                        {formatRelativeTime(resume.created_at)}
                       </p>
                     </div>
                   </div>

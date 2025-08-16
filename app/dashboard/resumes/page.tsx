@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { getUser, getUserResumes } from "@/lib/queries";
 import type { Resume } from "@/lib/types";
+import { formatRelativeTime } from "@/lib/utils";
 import {
   AlertCircle,
   BarChart3,
@@ -189,10 +190,7 @@ export default async function ResumesPage() {
                             <div className="flex items-center text-sm text-gray-500 space-x-6">
                               <div className="flex items-center">
                                 <Calendar className="h-4 w-4 mr-2" />
-                                Uploaded{" "}
-                                {new Date(
-                                  resume.created_at
-                                ).toLocaleDateString()}
+                                Uploaded {formatRelativeTime(resume.created_at)}
                               </div>
                               {resume.file_size && (
                                 <div className="flex items-center">
