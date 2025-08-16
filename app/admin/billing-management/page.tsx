@@ -2,9 +2,12 @@ import { DatabasePlansTab } from "@/components/admin/database-plans-tab";
 import { StripePlansTab } from "@/components/admin/stripe-plans-tab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getlastSyncedAt } from "@/lib/queries";
+import { formatDateTime } from "@/lib/utils";
 import { CreditCard, Package, TrendingUp, Users } from "lucide-react";
 
-export default function BillingManagementPage() {
+export default async function BillingManagementPage() {
+  const lastSync = await getlastSyncedAt();
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="mx-auto p-6 lg:p-8 space-y-8">
@@ -128,7 +131,7 @@ export default function BillingManagementPage() {
                 <p className="text-sm text-gray-600">
                   Last synchronized with Stripe:{" "}
                   <span className="font-medium text-green-600">
-                    2 minutes ago
+                    {formatDateTime(lastSync)}
                   </span>
                 </p>
               </div>

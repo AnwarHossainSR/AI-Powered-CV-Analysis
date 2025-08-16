@@ -5,9 +5,10 @@ import { type NextRequest, NextResponse } from "next/server";
 // DELETE - Archive Stripe product and all its prices
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Check admin access
@@ -37,7 +38,7 @@ export async function DELETE(
 
     // Get all prices for this product and archive them
     const prices = await stripe.prices.list({
-      product: params.id,
+      product: id,
       active: true,
     });
 
@@ -49,7 +50,7 @@ export async function DELETE(
     );
 
     // Archive the product
-    await stripe.products.update(params.id, { active: false });
+    await stripe.products.update(id, { active: false });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -64,9 +65,10 @@ export async function DELETE(
 // PUT - Update Stripe product
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Check admin access
@@ -98,7 +100,7 @@ export async function PUT(
     const { name, description, metadata } = body;
 
     // Update Stripe product
-    const updatedProduct = await stripe.products.update(params.id, {
+    const updatedProduct = await stripe.products.update(id, {
       name,
       description,
       metadata,

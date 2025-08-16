@@ -58,18 +58,31 @@ export async function POST(request: NextRequest) {
       expand: ["data.default_price"],
     });
 
-    if (stripeProducts.data.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: "No active Stripe products found to sync",
-        results: [],
-        debug: {
-          totalProductsInStripe: allProducts.data.length,
-          totalPricesInStripe: allPrices.data.length,
-          activeProductsToSync: 0,
-        },
-      });
+    // Get all existing billing plans from database
+    const { data: existingBillingPlans, error: fetchPlansError } =
+      await supabase
+        .from("billing_plans")
+        .select("id, name, stripe_product_id");
+
+    if (fetchPlansError) {
+      console.error("Error fetching existing billing plans:", fetchPlansError);
+      return NextResponse.json(
+        { error: "Failed to fetch existing billing plans" },
+        { status: 500 }
+      );
     }
+
+    // Create set of active Stripe product IDs for quick lookup
+    const activeStripeProductIds = new Set(
+      stripeProducts.data.map((product) => product.id)
+    );
+
+    // Find billing plans that no longer exist in Stripe
+    const plansToDelete = existingBillingPlans.filter(
+      (plan: any) =>
+        plan.stripe_product_id &&
+        !activeStripeProductIds.has(plan.stripe_product_id)
+    );
 
     const stripePrices = await stripe.prices.list({
       active: true,
@@ -89,6 +102,58 @@ export async function POST(request: NextRequest) {
     // Sync each product to database
     const syncResults = [];
     const errors = [];
+    const deletedPlans = [];
+
+    // Delete plans that no longer exist in Stripe
+    for (const planToDelete of plansToDelete) {
+      try {
+        const { error: deleteError } = await supabase
+          .from("billing_plans")
+          .delete()
+          .eq("id", planToDelete.id);
+
+        if (deleteError) {
+          console.error(
+            `Failed to delete plan ${planToDelete.name}:`,
+            deleteError
+          );
+          errors.push(
+            `Delete failed for "${planToDelete.name}": ${deleteError.message}`
+          );
+        } else {
+          console.log(`Successfully deleted plan: ${planToDelete.name}`);
+          deletedPlans.push({
+            action: "deleted",
+            product: planToDelete.name,
+            id: planToDelete.id,
+            reason: "No longer exists in Stripe",
+          });
+        }
+      } catch (deleteErr) {
+        console.error(
+          `Unexpected error deleting ${planToDelete.name}:`,
+          deleteErr
+        );
+        errors.push(
+          `Unexpected delete error for "${planToDelete.name}": ${deleteErr}`
+        );
+      }
+    }
+
+    if (stripeProducts.data.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "No active Stripe products found to sync",
+        results: [],
+        deleted: deletedPlans,
+        debug: {
+          totalProductsInStripe: allProducts.data.length,
+          totalPricesInStripe: allPrices.data.length,
+          activeProductsToSync: 0,
+          plansDeleted: deletedPlans.length,
+        },
+      });
+    }
 
     for (const product of stripeProducts.data) {
       const productPrices = pricesByProduct[product.id] || [];
@@ -107,7 +172,7 @@ export async function POST(request: NextRequest) {
           .from("billing_plans")
           .select("id, name")
           .eq("stripe_product_id", product.id)
-          .maybeSingle(); // Use maybeSingle instead of single
+          .maybeSingle();
 
         if (fetchError) {
           console.error("Error fetching existing plan:", fetchError);
@@ -220,15 +285,20 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      success: syncResults.length > 0 || errors.length === 0,
-      message: `Processed ${stripeProducts.data.length} products. ${syncResults.length} successful, ${errors.length} errors.`,
+      success:
+        syncResults.length > 0 ||
+        deletedPlans.length > 0 ||
+        errors.length === 0,
+      message: `Processed ${stripeProducts.data.length} products. ${syncResults.length} successful, ${deletedPlans.length} deleted, ${errors.length} errors.`,
       results: syncResults,
+      deleted: deletedPlans,
       errors: errors,
       debug: {
         totalProductsInStripe: allProducts.data.length,
         totalPricesInStripe: allPrices.data.length,
         activeProductsToSync: stripeProducts.data.length,
         processedSuccessfully: syncResults.length,
+        plansDeleted: deletedPlans.length,
         errorCount: errors.length,
       },
     });
