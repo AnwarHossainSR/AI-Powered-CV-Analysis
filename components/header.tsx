@@ -14,8 +14,10 @@ export default function Header() {
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <FileText className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">CV Analyzer</span>
+              <div className="bg-black rounded-lg p-2">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+              <span className="ml-3 text-xl font-bold text-gray-900">CV Analyzer</span>
             </Link>
           </div>
 
@@ -47,7 +49,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link href="/auth/sign-up">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Get Started</Button>
+              <Button className="bg-black hover:bg-gray-800 text-white">Get Started</Button>
             </Link>
           </div>
         </div>

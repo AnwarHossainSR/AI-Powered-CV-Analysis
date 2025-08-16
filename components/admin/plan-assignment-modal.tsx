@@ -2,17 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ReusableModal } from "@/components/ui/reusable-modal"
 import { toast } from "sonner"
 
 interface PlanAssignmentModalProps {
@@ -39,10 +32,12 @@ export function PlanAssignmentModal({ user, isOpen, onClose, onAssign }: PlanAss
       const response = await fetch("/api/admin/billing-plans")
       if (response.ok) {
         const data = await response.json()
-        setPlans(data)
+        const plansArray = Array.isArray(data) ? data : data.plans || []
+        setPlans(plansArray)
       }
     } catch (error) {
       console.error("Error fetching plans:", error)
+      toast.error("Failed to fetch billing plans")
     }
   }
 
@@ -65,7 +60,8 @@ export function PlanAssignmentModal({ user, isOpen, onClose, onAssign }: PlanAss
       })
 
       if (!response.ok) {
-        throw new Error("Failed to assign plan")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to assign plan")
       }
 
       const updatedUser = await response.json()
@@ -74,7 +70,7 @@ export function PlanAssignmentModal({ user, isOpen, onClose, onAssign }: PlanAss
       onClose()
     } catch (error) {
       console.error("Error assigning plan:", error)
-      toast.error("Failed to assign plan")
+      toast.error(error instanceof Error ? error.message : "Failed to assign plan")
     } finally {
       setLoading(false)
     }
@@ -82,60 +78,61 @@ export function PlanAssignmentModal({ user, isOpen, onClose, onAssign }: PlanAss
 
   const selectedPlanData = plans.find((plan: any) => plan.id === selectedPlan)
 
+  const footer = (
+    <>
+      <Button type="button" variant="outline" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button onClick={handleAssign} disabled={loading} className="bg-black hover:bg-gray-800 text-white">
+        {loading ? "Assigning..." : "Assign Plan"}
+      </Button>
+    </>
+  )
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Assign Plan to User</DialogTitle>
-          <DialogDescription>Assign a billing plan to {user?.full_name || user?.email}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="plan">Select Plan</Label>
-            <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a plan" />
-              </SelectTrigger>
-              <SelectContent>
-                {plans.map((plan: any) => (
-                  <SelectItem key={plan.id} value={plan.id}>
-                    {plan.name} - ${plan.price} ({plan.credits} credits)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedPlanData && (
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-medium">{selectedPlanData.name}</h4>
-              <p className="text-sm text-gray-600">{selectedPlanData.description}</p>
-              <p className="text-sm font-medium mt-1">Default Credits: {selectedPlanData.credits}</p>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="credits">Custom Credits (Optional)</Label>
-            <Input
-              id="credits"
-              type="number"
-              value={customCredits}
-              onChange={(e) => setCustomCredits(e.target.value)}
-              placeholder={`Default: ${selectedPlanData?.credits || 0}`}
-            />
-          </div>
+    <ReusableModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Assign Plan to User"
+      description={`Assign a billing plan to ${user?.full_name || user?.email}`}
+      footer={footer}
+    >
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="plan">Select Plan</Label>
+          <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a plan" />
+            </SelectTrigger>
+            <SelectContent>
+              {plans.map((plan: any) => (
+                <SelectItem key={plan.id} value={plan.id}>
+                  {plan.name} - ${plan.price} ({plan.credits} credits)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleAssign} disabled={loading}>
-            {loading ? "Assigning..." : "Assign Plan"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        {selectedPlanData && (
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <h4 className="font-medium">{selectedPlanData.name}</h4>
+            <p className="text-sm text-gray-600">{selectedPlanData.description}</p>
+            <p className="text-sm font-medium mt-1">Default Credits: {selectedPlanData.credits}</p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="credits">Custom Credits (Optional)</Label>
+          <Input
+            id="credits"
+            type="number"
+            value={customCredits}
+            onChange={(e) => setCustomCredits(e.target.value)}
+            placeholder={`Default: ${selectedPlanData?.credits || 0}`}
+          />
+        </div>
+      </div>
+    </ReusableModal>
   )
 }
