@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,7 +6,6 @@ import { getParseData, getResume, getUser } from "@/lib/queries";
 import type { ParsedData } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 import {
-  ArrowLeft,
   Briefcase,
   Code,
   Download,
@@ -71,12 +71,7 @@ export default async function ResumeDetailsPage(
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center mb-4">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="mr-4">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-              </Link>
+              <BackButton />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   {resume.filename}
