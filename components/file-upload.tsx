@@ -553,7 +553,7 @@ export default function FileUpload({
                     credits < readyFiles.length ||
                     readyFiles.length === 0
                   }
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:opacity-50"
+                  className="bg-black hover:bg-gray-800 text-white font-medium px-6 py-2.5 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:opacity-50"
                 >
                   {uploading ? (
                     <>

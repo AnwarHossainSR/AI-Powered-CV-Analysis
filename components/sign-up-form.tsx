@@ -1,22 +1,28 @@
-"use client"
+"use client";
 
-import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, FileText } from "lucide-react"
-import Link from "next/link"
-import { signUp } from "@/lib/actions"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { signUp } from "@/lib/actions";
+import { FileText, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 function SubmitButton() {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
 
   return (
     <Button
       type="submit"
       disabled={pending}
-      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg font-medium rounded-lg h-[60px]"
+      className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg font-medium rounded-lg"
     >
       {pending ? (
         <>
@@ -27,12 +33,12 @@ function SubmitButton() {
         "Create Account"
       )}
     </Button>
-  )
+  );
 }
 
 export default function SignUpForm() {
   // Initialize with null as the initial state
-  const [state, formAction] = useActionState(signUp, null)
+  const [state, formAction] = useActionState(signUp, null);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -41,8 +47,12 @@ export default function SignUpForm() {
           <FileText className="w-6 h-6 text-blue-600" />
         </div>
         <div>
-          <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
-          <CardDescription className="text-gray-600">Start analyzing your resumes with AI</CardDescription>
+          <CardTitle className="text-2xl font-bold">
+            Create your account
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            Start analyzing your resumes with AI
+          </CardDescription>
         </div>
       </CardHeader>
 
@@ -62,19 +72,42 @@ export default function SignUpForm() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Full Name
               </label>
-              <Input id="fullName" name="fullName" type="text" placeholder="John Doe" required className="h-12" />
+              <Input
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder="John Doe"
+                required
+                className="h-12"
+              />
             </div>
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
-              <Input id="email" name="email" type="email" placeholder="you@example.com" required className="h-12" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                className="h-12"
+              />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <Input
@@ -93,12 +126,15 @@ export default function SignUpForm() {
 
           <div className="text-center text-gray-600">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
+            <Link
+              href="/auth/login"
+              className="text-blue-600 hover:underline font-medium"
+            >
               Sign in
             </Link>
           </div>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

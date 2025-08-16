@@ -1,91 +1,197 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UserActionsDropdown } from "@/components/admin/user-actions-dropdown"
-import { UserEditModal } from "@/components/admin/user-edit-modal"
-import { PlanAssignmentModal } from "@/components/admin/plan-assignment-modal"
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
-import { Search, Users, Filter, RefreshCw } from "lucide-react"
-import { formatDate } from "@/lib/utils"
-import { useAdminUsers, useUpdateUser } from "@/lib/hooks/use-query-hooks"
-import { toast } from "react-toastify"
+import { PlanAssignmentModal } from "@/components/admin/plan-assignment-modal";
+import { UserActionsDropdown } from "@/components/admin/user-actions-dropdown";
+import { UserEditModal } from "@/components/admin/user-edit-modal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { Input } from "@/components/ui/input";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatDate } from "@/lib/utils";
+import { Filter, RefreshCw, Search, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function AdminUsersPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [subscriptionFilter, setSubscriptionFilter] = useState("all")
+  const [users, setUsers] = useState<any>([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState("all");
 
   // Modal states
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [planModalOpen, setPlanModalOpen] = useState(false)
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [actionType, setActionType] = useState("")
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [actionType, setActionType] = useState("");
 
-  const filters = useMemo(
-    () => ({
-      search: searchTerm,
-      status: statusFilter,
-      subscription: subscriptionFilter,
-    }),
-    [searchTerm, statusFilter, subscriptionFilter],
-  )
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const { data: usersData, isLoading, refetch } = useAdminUsers(filters)
-  const updateUserMutation = useUpdateUser()
+  useEffect(() => {
+    filterUsers();
+  }, [users, searchTerm, statusFilter, subscriptionFilter]);
 
-  const users = usersData?.users || []
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/admin/users");
+      if (response.ok) {
+        const data = await response.json();
+        console.log("[v0] API response:", data); // Debug log to see the actual response structure
+        setUsers(data.users || data); // Handle both structured and direct array responses
+      } else {
+        toast.error("Failed to fetch users");
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Error loading users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterUsers = () => {
+    let filtered = users;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (user: any) =>
+          user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((user: any) => {
+        if (statusFilter === "blocked") return user.is_blocked;
+        if (statusFilter === "active") return !user.is_blocked;
+        return true;
+      });
+    }
+
+    // Subscription filter
+    if (subscriptionFilter !== "all") {
+      filtered = filtered.filter(
+        (user: any) => user.subscription_status === subscriptionFilter
+      );
+    }
+
+    setFilteredUsers(filtered);
+  };
+
+  const handleEdit = (user: any) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  };
+
+  const handleAssignPlan = (user: any) => {
+    setSelectedUser(user);
+    setPlanModalOpen(true);
+  };
+
+  const handleBlock = (user: any) => {
+    setSelectedUser(user);
+    setActionType("block");
+    setConfirmDialogOpen(true);
+  };
+
+  const handleUnblock = (user: any) => {
+    setSelectedUser(user);
+    setActionType("unblock");
+    setConfirmDialogOpen(true);
+  };
+
+  const handleMakeAdmin = (user: any) => {
+    setSelectedUser(user);
+    setActionType("makeAdmin");
+    setConfirmDialogOpen(true);
+  };
 
   const executeAction = async () => {
-    if (!selectedUser) return
+    if (!selectedUser) return;
 
     try {
-      let updateData = {}
+      let endpoint = "";
+      const method = "PUT";
+      let body = {};
 
       switch (actionType) {
         case "block":
-          updateData = { ...selectedUser, is_blocked: true }
-          break
+          endpoint = `/api/admin/users/${selectedUser.id}`;
+          body = { ...selectedUser, is_blocked: true };
+          break;
         case "unblock":
-          updateData = { ...selectedUser, is_blocked: false }
-          break
+          endpoint = `/api/admin/users/${selectedUser.id}`;
+          body = { ...selectedUser, is_blocked: false };
+          break;
         case "makeAdmin":
           // This would need a separate endpoint for admin role assignment
-          toast.info("Admin role assignment feature coming soon")
-          return
+          toast.info("Admin role assignment feature coming soon");
+          return;
       }
 
-      await updateUserMutation.mutateAsync({
-        id: selectedUser.id,
-        data: updateData,
-      })
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        toast.success(`User ${actionType}ed successfully`);
+        fetchUsers(); // Refresh the list
+      } else {
+        toast.error(`Failed to ${actionType} user`);
+      }
     } catch (error) {
-      console.error(`Error ${actionType}ing user:`, error)
+      console.error(`Error ${actionType}ing user:`, error);
+      toast.error(`Error ${actionType}ing user`);
     }
-  }
+  };
 
   const handleUserUpdate = (updatedUser: any) => {
-    refetch()
-  }
+    setUsers(
+      users.map((user: any) =>
+        user.id === updatedUser.id ? updatedUser : user
+      )
+    );
+  };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin" />
+        <LoadingSpinner />
       </div>
-    )
+    );
   }
 
   return (
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="mt-1 text-sm text-gray-600">Manage user accounts, subscriptions, and permissions.</p>
+        <p className="mt-1 text-sm text-gray-600">
+          Manage user accounts, subscriptions, and permissions.
+        </p>
       </div>
 
       <Card>
@@ -94,11 +200,18 @@ export default function AdminUsersPage() {
             <div>
               <CardTitle className="flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                All Users ({users.length})
+                All Users ({filteredUsers.length})
               </CardTitle>
-              <CardDescription>Complete list of registered users with advanced filtering</CardDescription>
+              <CardDescription>
+                Complete list of registered users with advanced filtering
+              </CardDescription>
             </div>
-            <Button onClick={() => refetch()} variant="outline" size="sm">
+            <Button
+              onClick={fetchUsers}
+              variant="outline"
+              size="sm"
+              className="bg-black hover:bg-gray-800 text-white"
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -126,7 +239,10 @@ export default function AdminUsersPage() {
                 <SelectItem value="blocked">Blocked</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={subscriptionFilter} onValueChange={setSubscriptionFilter}>
+            <Select
+              value={subscriptionFilter}
+              onValueChange={setSubscriptionFilter}
+            >
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Subscription" />
               </SelectTrigger>
@@ -139,7 +255,7 @@ export default function AdminUsersPage() {
             </Select>
           </div>
 
-          {users.length > 0 ? (
+          {filteredUsers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -168,16 +284,22 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user: any) => (
+                  {filteredUsers.map((user: any) => (
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{user.full_name || "No name"}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {user.full_name || "No name"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.email}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={user.is_blocked ? "destructive" : "default"}>
+                        <Badge
+                          variant={user.is_blocked ? "destructive" : "default"}
+                        >
                           {user.is_blocked ? "Blocked" : "Active"}
                         </Badge>
                       </td>
@@ -187,15 +309,17 @@ export default function AdminUsersPage() {
                             user.subscription_status === "free"
                               ? "secondary"
                               : user.subscription_status === "premium"
-                                ? "default"
-                                : "outline"
+                              ? "default"
+                              : "outline"
                           }
                           className="capitalize"
                         >
                           {user.subscription_status}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.credits}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {user.credits}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {user.resumes?.[0]?.count || 0}
                       </td>
@@ -205,29 +329,11 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <UserActionsDropdown
                           user={user}
-                          onEdit={() => {
-                            setSelectedUser(user)
-                            setEditModalOpen(true)
-                          }}
-                          onBlock={() => {
-                            setSelectedUser(user)
-                            setActionType("block")
-                            setConfirmDialogOpen(true)
-                          }}
-                          onUnblock={() => {
-                            setSelectedUser(user)
-                            setActionType("unblock")
-                            setConfirmDialogOpen(true)
-                          }}
-                          onAssignPlan={() => {
-                            setSelectedUser(user)
-                            setPlanModalOpen(true)
-                          }}
-                          onMakeAdmin={() => {
-                            setSelectedUser(user)
-                            setActionType("makeAdmin")
-                            setConfirmDialogOpen(true)
-                          }}
+                          onEdit={handleEdit}
+                          onBlock={handleBlock}
+                          onUnblock={handleUnblock}
+                          onAssignPlan={handleAssignPlan}
+                          onMakeAdmin={handleMakeAdmin}
                         />
                       </td>
                     </tr>
@@ -238,9 +344,13 @@ export default function AdminUsersPage() {
           ) : (
             <div className="text-center py-8">
               <Users className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No users found
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {searchTerm || statusFilter !== "all" || subscriptionFilter !== "all"
+                {searchTerm ||
+                statusFilter !== "all" ||
+                subscriptionFilter !== "all"
                   ? "Try adjusting your filters"
                   : "No users have registered yet"}
               </p>
@@ -270,10 +380,18 @@ export default function AdminUsersPage() {
         isOpen={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
         onConfirm={executeAction}
-        title={`${actionType === "block" ? "Block" : actionType === "unblock" ? "Unblock" : "Make Admin"} User`}
-        description={`Are you sure you want to ${actionType} ${selectedUser?.full_name || selectedUser?.email}?`}
+        title={`${
+          actionType === "block"
+            ? "Block"
+            : actionType === "unblock"
+            ? "Unblock"
+            : "Make Admin"
+        } User`}
+        description={`Are you sure you want to ${actionType} ${
+          selectedUser?.full_name || selectedUser?.email
+        }?`}
         variant={actionType === "block" ? "destructive" : "default"}
       />
     </>
-  )
+  );
 }

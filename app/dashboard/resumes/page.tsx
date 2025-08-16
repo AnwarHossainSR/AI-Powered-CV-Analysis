@@ -151,7 +151,7 @@ export default async function ResumesPage() {
                   </CardDescription>
                 </div>
                 <Link href="/dashboard/upload">
-                  <Button className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white shadow-lg">
+                  <Button className="bg-black hover:bg-gray-800 text-white shadow-lg">
                     <FileText className="mr-2 h-4 w-4" />
                     Upload New Resume
                   </Button>
@@ -272,7 +272,7 @@ export default async function ResumesPage() {
                     and unlock professional insights.
                   </p>
                   <Link href="/dashboard/upload">
-                    <Button className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white shadow-lg px-8 py-3 text-lg">
+                    <Button className="bg-black hover:bg-gray-800 text-white shadow-lg px-8 py-3 text-lg">
                       <FileText className="mr-2 h-5 w-5" />
                       Upload Your First Resume
                     </Button>

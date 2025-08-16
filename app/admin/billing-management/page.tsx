@@ -61,14 +61,14 @@ export default function BillingManagementPage() {
               <TabsList className="grid w-full max-w-md grid-cols-2 bg-white border border-gray-200 shadow-sm">
                 <TabsTrigger
                   value="database"
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium"
+                  className="data-[state=active]:bg-black data-[state=active]:hover:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium cursor-pointer"
                 >
                   <Package className="w-4 h-4 mr-2" />
                   Database Plans
                 </TabsTrigger>
                 <TabsTrigger
                   value="stripe"
-                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium"
+                  className="data-[state=active]:bg-black data-[state=active]:hover:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
                   Stripe Products

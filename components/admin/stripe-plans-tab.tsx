@@ -206,7 +206,7 @@ export function StripePlansTab() {
             onClick={handleSyncWithDatabase}
             disabled={syncing}
             variant="outline"
-            className="border-purple-200 text-purple-700 hover:bg-purple-50 bg-transparent"
+            className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300 shadow-sm flex items-center gap-2"
           >
             <Sync className={`w-4 h-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
             Sync with DB
@@ -225,7 +225,7 @@ export function StripePlansTab() {
           <div className="flex justify-end">
             <Button
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="bg-black hover:bg-gray-800 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Product
