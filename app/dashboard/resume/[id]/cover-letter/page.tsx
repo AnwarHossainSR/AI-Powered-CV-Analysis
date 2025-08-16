@@ -1,73 +1,88 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Briefcase, Download, FileText, RefreshCw, Loader2 } from "lucide-react"
-import Link from "next/link"
-import { useParams } from "next/navigation"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  ArrowLeft,
+  Briefcase,
+  Download,
+  FileText,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface Resume {
-  id: string
-  filename: string
-  status: string
-  parsed_data: any
+  id: string;
+  filename: string;
+  status: string;
+  parsed_data: any;
 }
 
 export default function CoverLetterPage() {
-  const params = useParams()
-  const resumeId = params.id as string
+  const params = useParams();
+  const resumeId = params.id as string;
 
-  const [resume, setResume] = useState<Resume | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [coverLetter, setCoverLetter] = useState("")
-  const [wordCount, setWordCount] = useState(0)
-  const [characterCount, setCharacterCount] = useState(0)
+  const [resume, setResume] = useState<Resume | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
+  const [wordCount, setWordCount] = useState(0);
+  const [characterCount, setCharacterCount] = useState(0);
 
   // Form state
-  const [jobTitle, setJobTitle] = useState("")
-  const [companyName, setCompanyName] = useState("")
-  const [jobDescription, setJobDescription] = useState("")
+  const [jobTitle, setJobTitle] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
 
   useEffect(() => {
     const fetchResume = async () => {
       try {
-        const response = await fetch(`/api/resumes/${resumeId}`)
+        const response = await fetch(`/api/resumes/${resumeId}`);
         if (response.ok) {
-          const data = await response.json()
-          setResume(data)
+          const data = await response.json();
+          setResume(data);
         } else {
-          toast.error("Failed to load resume")
+          toast.error("Failed to load resume");
         }
       } catch (error) {
-        console.error("Error fetching resume:", error)
-        toast.error("Failed to load resume")
+        console.error("Error fetching resume:", error);
+        toast.error("Failed to load resume");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     if (resumeId) {
-      fetchResume()
+      fetchResume();
     }
-  }, [resumeId])
+  }, [resumeId]);
 
   useEffect(() => {
     if (coverLetter) {
-      setWordCount(coverLetter.split(/\s+/).filter((word) => word.length > 0).length)
-      setCharacterCount(coverLetter.length)
+      setWordCount(
+        coverLetter.split(/\s+/).filter((word) => word.length > 0).length
+      );
+      setCharacterCount(coverLetter.length);
     }
-  }, [coverLetter])
+  }, [coverLetter]);
 
   const handleGenerateCoverLetter = async () => {
-    if (!resume) return
+    if (!resume) return;
 
-    setGenerating(true)
+    setGenerating(true);
     try {
       const response = await fetch("/api/cover-letter/generate", {
         method: "POST",
@@ -80,36 +95,36 @@ export default function CoverLetterPage() {
           companyName,
           jobDescription,
         }),
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setCoverLetter(data.coverLetter)
-        toast.success("Cover letter generated successfully!")
+        const data = await response.json();
+        setCoverLetter(data.coverLetter);
+        toast.success("Cover letter generated successfully!");
       } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to generate cover letter")
+        const error = await response.json();
+        toast.error(error.error || "Failed to generate cover letter");
       }
     } catch (error) {
-      console.error("Error generating cover letter:", error)
-      toast.error("Failed to generate cover letter")
+      console.error("Error generating cover letter:", error);
+      toast.error("Failed to generate cover letter");
     } finally {
-      setGenerating(false)
+      setGenerating(false);
     }
-  }
+  };
 
   const handleDownload = () => {
-    if (!coverLetter) return
+    if (!coverLetter) return;
 
-    const element = document.createElement("a")
-    const file = new Blob([coverLetter], { type: "text/plain" })
-    element.href = URL.createObjectURL(file)
-    element.download = `cover-letter-${companyName || "general"}.txt`
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-    toast.success("Cover letter downloaded!")
-  }
+    const element = document.createElement("a");
+    const file = new Blob([coverLetter], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `cover-letter-${companyName || "general"}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success("Cover letter downloaded!");
+  };
 
   if (loading) {
     return (
@@ -119,7 +134,7 @@ export default function CoverLetterPage() {
           <span>Loading resume...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (!resume) {
@@ -127,13 +142,15 @@ export default function CoverLetterPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 flex items-center justify-center">
         <div className="text-center">
           <FileText className="mx-auto h-16 w-16 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">Resume not found</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            Resume not found
+          </h3>
           <Link href="/dashboard/resumes">
             <Button className="mt-4">Back to Resumes</Button>
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -148,7 +165,9 @@ export default function CoverLetterPage() {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Resume Analysis
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900 font-heading">Cover Letter Generator</h1>
+            <h1 className="text-2xl font-bold text-gray-900 font-heading">
+              Cover Letter Generator
+            </h1>
             <p className="mt-1 text-sm text-gray-600">
               AI-powered cover letter based on your resume: {resume.filename}
             </p>
@@ -161,7 +180,9 @@ export default function CoverLetterPage() {
                   <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
                   Job Details (Optional)
                 </CardTitle>
-                <CardDescription>Provide job details to create a more targeted cover letter</CardDescription>
+                <CardDescription>
+                  Provide job details to create a more targeted cover letter
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +208,9 @@ export default function CoverLetterPage() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="jobDescription">Job Description (Optional)</Label>
+                  <Label htmlFor="jobDescription">
+                    Job Description (Optional)
+                  </Label>
                   <Textarea
                     id="jobDescription"
                     value={jobDescription}
@@ -206,7 +229,9 @@ export default function CoverLetterPage() {
                   ) : (
                     <RefreshCw className="h-4 w-4 mr-2" />
                   )}
-                  {generating ? "Generating..." : "Generate Targeted Cover Letter"}
+                  {generating
+                    ? "Generating..."
+                    : "Generate Targeted Cover Letter"}
                 </Button>
               </CardContent>
             </Card>
@@ -220,7 +245,9 @@ export default function CoverLetterPage() {
                       <FileText className="h-5 w-5 mr-2 text-green-600" />
                       Generated Cover Letter
                     </CardTitle>
-                    <CardDescription>Personalized cover letter based on your resume analysis</CardDescription>
+                    <CardDescription>
+                      Personalized cover letter based on your resume analysis
+                    </CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <Button
@@ -236,7 +263,12 @@ export default function CoverLetterPage() {
                       )}
                       Regenerate
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleDownload} disabled={!coverLetter}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownload}
+                      disabled={!coverLetter}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Download
                     </Button>
@@ -247,9 +279,12 @@ export default function CoverLetterPage() {
                 {resume.status !== "completed" ? (
                   <div className="text-center py-12">
                     <FileText className="mx-auto h-16 w-16 text-gray-400" />
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">Resume Analysis Required</h3>
+                    <h3 className="mt-4 text-lg font-medium text-gray-900">
+                      Resume Analysis Required
+                    </h3>
                     <p className="mt-2 text-sm text-gray-500">
-                      Your resume needs to be analyzed before we can generate a cover letter.
+                      Your resume needs to be analyzed before we can generate a
+                      cover letter.
                     </p>
                     <Link href={`/dashboard/resume/${resume.id}`}>
                       <Button className="mt-4">View Resume Analysis</Button>
@@ -279,7 +314,9 @@ export default function CoverLetterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-heading text-lg">Customization Tips</CardTitle>
+                  <CardTitle className="font-heading text-lg">
+                    Customization Tips
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm text-gray-600 space-y-2">
@@ -306,7 +343,9 @@ export default function CoverLetterPage() {
               {/* Best Practices */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-heading text-lg">Best Practices</CardTitle>
+                  <CardTitle className="font-heading text-lg">
+                    Best Practices
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm text-gray-600 space-y-2">
@@ -334,5 +373,5 @@ export default function CoverLetterPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

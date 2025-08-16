@@ -1,4 +1,6 @@
+import { checkAdminAccess } from "@/lib/admin";
 import { parseResumeWithAI } from "@/lib/ai";
+import { getUser, getUserProfile } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -8,34 +10,9 @@ export async function POST(request: NextRequest) {
   let fileName: string | null = null;
 
   try {
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      console.error("Authentication failed:", authError?.message);
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    // Get user profile to check credits
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("credits")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError) {
-      console.error("Profile fetch error:", profileError.message);
-      return NextResponse.json(
-        { error: "Failed to fetch user profile" },
-        { status: 500 }
-      );
-    }
+    const user = await getUser();
+    const profile = await getUserProfile(user.id);
+    const isAdimin = await checkAdminAccess(user.id);
 
     if (!profile || profile.credits < 1) {
       return NextResponse.json(
