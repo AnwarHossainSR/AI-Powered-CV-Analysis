@@ -8,9 +8,14 @@ import { usePathname } from "next/navigation";
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const { user, loading, isHydrated } = useAuth();
+
+  // Don't render auth-dependent content until hydrated
+  const showAuthContent = isHydrated && !loading;
+
   console.log("User:", user);
   console.log("Loading:", loading);
+  console.log("Is Hydrated:", isHydrated);
 
   return (
     <header className="bg-white shadow-sm">
@@ -55,7 +60,7 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {!loading && (
+            {showAuthContent ? (
               <>
                 {user ? (
                   <Link href="/dashboard">
@@ -81,7 +86,8 @@ export default function Header() {
                   </>
                 )}
               </>
-            )}
+            ) : // Show placeholder or loading state during hydration
+            null}
           </div>
         </div>
       </div>

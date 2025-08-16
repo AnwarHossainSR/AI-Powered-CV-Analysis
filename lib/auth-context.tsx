@@ -16,6 +16,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   refreshUser: () => Promise<void>;
+  isHydrated: boolean; // Add this to track hydration
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false); // Track hydration
   const supabase = createClient();
 
   const refreshUser = useCallback(async () => {
@@ -59,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initAuth = async () => {
       if (mounted) {
+        setIsHydrated(true); // Mark as hydrated
         await refreshUser();
       }
     };
@@ -80,7 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser, supabase.auth]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, isAdmin, refreshUser, isHydrated }}
+    >
       {children}
     </AuthContext.Provider>
   );
