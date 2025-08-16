@@ -1,81 +1,95 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import type { User } from "@supabase/supabase-js"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import type React from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface AuthContextType {
-  user: User | null
-  loading: boolean
-  isAdmin: boolean
-  refreshUser: () => Promise<void>
+  user: User | null;
+  loading: boolean;
+  isAdmin: boolean;
+  refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const supabase = createClient()
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const supabase = createClient();
 
   const refreshUser = useCallback(async () => {
     try {
       const {
         data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
+      } = await supabase.auth.getUser();
+      setUser(user);
 
       if (user) {
         // Check admin status
-        const { data: adminUser } = await supabase.from("admin_users").select("role").eq("id", user.id).single()
+        const { data: adminUser } = await supabase
+          .from("admin_users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
 
-        setIsAdmin(adminUser?.role === "super_admin")
+        setIsAdmin(adminUser?.role === "super_admin");
       } else {
-        setIsAdmin(false)
+        setIsAdmin(false);
       }
     } catch (error) {
-      console.error("[v0] Auth refresh error:", error)
-      setUser(null)
-      setIsAdmin(false)
+      console.error("[v0] Auth refresh error:", error);
+      setUser(null);
+      setIsAdmin(false);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [supabase])
+  }, [supabase]);
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
 
     const initAuth = async () => {
       if (mounted) {
-        await refreshUser()
+        await refreshUser();
       }
-    }
+    };
 
-    initAuth()
+    initAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (mounted && (event === "SIGNED_IN" || event === "SIGNED_OUT")) {
-        await refreshUser()
+        await refreshUser();
       }
-    })
+    });
 
     return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [refreshUser, supabase.auth])
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [refreshUser, supabase.auth]);
 
-  return <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, loading, isAdmin, refreshUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }
